@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     /// <inheritdoc />
-    public partial class Monster : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,6 +39,23 @@ namespace ApiV1ControlleurMonstre.Migrations
                     table.PrimaryKey("PK_Monstre", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Tuiles",
+                columns: table => new
+                {
+                    PositionX = table.Column<int>(type: "int", nullable: false),
+                    PositionY = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    EstTraversable = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    ImageURL = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tuiles", x => new { x.PositionX, x.PositionY });
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
         }
 
         /// <inheritdoc />
@@ -46,6 +63,9 @@ namespace ApiV1ControlleurMonstre.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Monstre");
+
+            migrationBuilder.DropTable(
+                name: "Tuiles");
         }
     }
 }
