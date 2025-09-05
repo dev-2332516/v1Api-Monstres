@@ -1,0 +1,22 @@
+* {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: white;
+}
+
+body {
+    background-color: #2B2A33;
+    padding-left: 1rem;
+    padding-right: 1rem
+}
+
+.container {
+    background-color: #42414D;
+    box-shadow: 2px 2px 2px black;
+    padding: 0.2rem;
+    border-radius: 5px;
+}
+
+.game-container {
+    background-color: transparent;
+    display: flex;
+}
