@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     [DbContext(typeof(MonsterContext))]
-    [Migration("20250904131304_Monster")]
-    partial class Monster
+    [Migration("20250905200831_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -66,6 +66,29 @@ namespace ApiV1ControlleurMonstre.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Monstre");
+                });
+
+            modelBuilder.Entity("ApiV1ControlleurMonstre.Models.Tuile", b =>
+                {
+                    b.Property<int>("PositionX")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PositionY")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EstTraversable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ImageURL")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("PositionX", "PositionY");
+
+                    b.ToTable("Tuiles");
                 });
 #pragma warning restore 612, 618
         }
