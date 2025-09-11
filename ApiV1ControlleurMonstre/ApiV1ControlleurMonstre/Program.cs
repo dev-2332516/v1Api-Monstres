@@ -10,6 +10,14 @@ namespace ApiV1ControlleurMonstre
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policyBuilder =>
+                {
+                    policyBuilder.AllowAnyHeader().AllowAnyMethod().WithOrigins("*");
+                });
+            });
+
             // Add services to the container.
             builder.Services.AddDbContext<MonsterContext>(options =>
             {
@@ -35,6 +43,7 @@ namespace ApiV1ControlleurMonstre
 
             app.UseAuthorization();
 
+            app.UseCors("CorsPolicy");
 
             app.MapControllers();
 

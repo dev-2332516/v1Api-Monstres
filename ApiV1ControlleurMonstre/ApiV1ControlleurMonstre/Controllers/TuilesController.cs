@@ -38,15 +38,31 @@ namespace ApiV1ControlleurMonstre.Controllers
             {
                 Random random = new Random();
                 int randomNumber = random.Next(1, 101);
-                int type;
-                if (randomNumber <= 20) type = 0;
-                else if (randomNumber <= 30) type = 1;
-                else if (randomNumber <= 45) type = 2;
-                else if (randomNumber <= 60) type = 3;
-                else if (randomNumber <= 65) type = 4;
-                else type = 5;
-                //TODO modifier l'url de l'image
-                tuile = new Tuile(positionX, positionY, type, false, "");
+                TuileTypeEnum type;
+                string imageUrl;
+                if (randomNumber <= 20) {
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Herbe, true, Tuile.stringImageUrl[TuileTypeEnum.Herbe]);
+                }
+                else if (randomNumber <= 30)
+                {
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Eau, false, Tuile.stringImageUrl[TuileTypeEnum.Eau]);
+                }
+                else if (randomNumber <= 45)
+                {
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Montagne, false, Tuile.stringImageUrl[TuileTypeEnum.Montagne]);
+                }
+                else if (randomNumber <= 60)
+                {
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Foret, false, Tuile.stringImageUrl[TuileTypeEnum.Foret]);
+                }
+                else if (randomNumber <= 65)
+                {
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Ville, false, Tuile.stringImageUrl[TuileTypeEnum.Ville]);
+                }
+                else
+                {
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Route, true, Tuile.stringImageUrl[TuileTypeEnum.Route]);
+                }
 
                 await PostTuile(tuile);
             }
