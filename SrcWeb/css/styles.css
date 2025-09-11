@@ -81,8 +81,8 @@ table {
 
 td {
     border: 1px solid rgba(100, 181, 246, 0.3);
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     text-align: center;
     vertical-align: middle;
     position: relative;
