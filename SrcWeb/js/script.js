@@ -20,8 +20,10 @@ async function GetTile(x, y, td) {
   }
 }
 
-function showCoordinates() { 
-  
+function showCoordinates(c, r) { 
+  const coord = document.getElementById("coord");
+  coord.innerText = '';
+  coord.innerHTML = c + ", " + r;
 }
 
 async function createGrid() {
@@ -34,7 +36,7 @@ async function createGrid() {
       // Calculer les coordonnées centrées
       // const centeredX = c - Math.floor(cols / 2) + 10;
       // const centeredY = r - Math.floor(rows / 2) + 10;
-      
+
       // const response = await fetch(`https://localhost:7223/api/Tuiles/${c}/${r}`);
       // const tile = await response.json()
       // const centeredX = tile.positionX;
@@ -42,8 +44,8 @@ async function createGrid() {
       
       td.id = `tile-${c}-${r}`;
 
+      td.addEventListener('mouseover', showCoordinates(c, r));
       td.onclick = () => GetTile(c, r, td);
-      td.addEventListener('mouseover', showCoordinates(c, r))
       const tuileEmpty = document.createElement('p');
       tuileEmpty.style.cssText = `
       Font-Size: 2rem;`
