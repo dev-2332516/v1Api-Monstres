@@ -4,6 +4,7 @@ using ApiV1ControlleurMonstre.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     [DbContext(typeof(MonsterContext))]
-    partial class MonsterContextModelSnapshot : ModelSnapshot
+    [Migration("20250912200112_AddUserPersonnage")]
+    partial class AddUserPersonnage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
