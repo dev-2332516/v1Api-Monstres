@@ -53,11 +53,11 @@ namespace ApiV1ControlleurMonstre.Controllers
                 }
                 else if (randomNumber <= 60)
                 {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Foret, false, Tuile.stringImageUrl[TuileTypeEnum.Foret]);
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Foret, true, Tuile.stringImageUrl[TuileTypeEnum.Foret]);
                 }
                 else if (randomNumber <= 65)
                 {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Ville, false, Tuile.stringImageUrl[TuileTypeEnum.Ville]);
+                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Ville, true, Tuile.stringImageUrl[TuileTypeEnum.Ville]);
                 }
                 else
                 {
