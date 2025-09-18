@@ -128,3 +128,142 @@ button:hover {
 .loaded-tile {
     animation: tileLoad 0.3s ease-out;
 }
+
+/* Styles spécifiques pour les boutons directionnels */
+#up-btn, #down-btn, #left-btn, #right-btn {
+    background: rgba(100, 181, 246, 0.2);
+    border: 1px solid rgba(100, 181, 246, 0.5);
+    color: white;
+    font-weight: bold;
+    width: 60px;
+    height: 40px;
+    margin: 0.2rem;
+}
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+#left-btn, #right-btn {
+    display: inline-block;
+}
+#up-btn {
+    display: block;
+    margin: 0.2rem auto;
+}
+
+#up-btn:hover, #down-btn:hover, #left-btn:hover, #right-btn:hover {
+    background: rgba(100, 181, 246, 0.4);
+    border-color: #64b5f6;
+}
+
+#left-btn, #right-btn {
+    width: 80px;
+}
+
+#down-btn {
+    margin-top: 0.5rem;
+}
+
+.auth-form {
+    max-width: 400px;
+    margin: 2rem auto;
+    background: rgba(66, 65, 77, 0.9);
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #64b5f6;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgba(100, 181, 246, 0.3);
+    border-radius: 5px;
+    background: rgba(45, 45, 68, 0.8);
+    color: white;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #64b5f6;
+    box-shadow: 0 0 5px rgba(100, 181, 246, 0.5);
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 0.8rem;
+    background: #64b5f6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.auth-btn:hover {
+    background: #5a9ed8;
+    transform: none;
+}
+
+.form-switch {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.form-switch a {
+    color: #64b5f6;
+    text-decoration: none;
+}
+
+.form-switch a:hover {
+    text-decoration: underline;
+}
+
+
+.error-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+.error-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.error-content p {
+    color: #333;
+    font-size: 1.1em;
+}
+
+.error-content button {
+    margin-top: 10px;
+    padding: 5px 20px;
+    border: none;
+    background: #ff4444;
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+}
