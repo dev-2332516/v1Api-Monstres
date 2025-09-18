@@ -12,12 +12,11 @@ namespace ApiV1ControlleurMonstre.Models
         public DateTime DateInscription { get; set; }
 
         public Utilisateur() { }
-        public Utilisateur(int id, string email, string pseudo, DateTime dateInscription)
+        public Utilisateur(string email, string pseudo, string password)
         {
-            Id = id;
             Email = email;
             Pseudo = pseudo;
-            DateInscription = DateTime.Now;
+            Password = password;
         }
     }
 }

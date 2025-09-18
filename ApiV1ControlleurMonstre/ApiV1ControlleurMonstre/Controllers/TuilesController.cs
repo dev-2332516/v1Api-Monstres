@@ -1,12 +1,14 @@
-﻿using System;
+﻿using ApiV1ControlleurMonstre.Data.Context;
+using ApiV1ControlleurMonstre.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ApiV1ControlleurMonstre.Data.Context;
-using ApiV1ControlleurMonstre.Models;
 
 namespace ApiV1ControlleurMonstre.Controllers
 {
@@ -28,47 +30,65 @@ namespace ApiV1ControlleurMonstre.Controllers
             return await _context.Tuiles.ToListAsync();
         }
 
-        // GET: api/Tuiles/10/10
-        [HttpGet("{positionX}/{positionY}")]
-        public async Task<ActionResult<Tuile>> GetTuile(int positionX, int positionY)
+        // GET: api/GetOrCreateTuile/10/10
+        [HttpGet("GetOrCreateTuile/{positionX}/{positionY}")]
+        public async Task<ActionResult<Tuile>> GetOrCreateTuile(int positionX, int positionY)
         {
-            var tuile = await _context.Tuiles.FindAsync(positionX,positionY);
+            var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
 
             if (tuile == null)
             {
-                Random random = new Random();
-                int randomNumber = random.Next(1, 101);
-                TuileTypeEnum type;
-                string imageUrl;
-                if (randomNumber <= 20) {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Herbe, true, Tuile.stringImageUrl[TuileTypeEnum.Herbe]);
-                }
-                else if (randomNumber <= 30)
-                {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Eau, false, Tuile.stringImageUrl[TuileTypeEnum.Eau]);
-                }
-                else if (randomNumber <= 45)
-                {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Montagne, false, Tuile.stringImageUrl[TuileTypeEnum.Montagne]);
-                }
-                else if (randomNumber <= 60)
-                {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Foret, true, Tuile.stringImageUrl[TuileTypeEnum.Foret]);
-                }
-                else if (randomNumber <= 65)
-                {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Ville, true, Tuile.stringImageUrl[TuileTypeEnum.Ville]);
-                }
-                else
-                {
-                    tuile = new Tuile(positionX, positionY, TuileTypeEnum.Route, true, Tuile.stringImageUrl[TuileTypeEnum.Route]);
-                }
-
-                await PostTuile(tuile);
+                await PostTuile(GenerateTuile(positionX, positionY));
             }
 
             return tuile;
         }
+
+        // GET: api/Tuiles/10/10
+        // Get une ligne de tuiles à partir d'une orientation
+        [HttpGet("GetTuilesLine/{positionX}/{positionY}/{orientation}")]
+        public async Task<ActionResult<Tuile[]>> GetTuilesLine(int positionX, int positionY, string orientation)
+        {
+            // Verifier si l'orientation est valide
+            if (orientation != "up" && orientation != "down" && orientation != "left" && orientation != "right")
+                return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\n\tValid inputs are: up, down, left, right");
+            Tuile[] tuilesArray = new Tuile[5];
+            Tuile tuile = null;
+
+            for (int value = -2; value <= 2; value++)
+            {
+                switch (orientation)
+                {
+                    case "up":
+                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 2);
+                        break;
+                    case "down":
+                        tuile = await _context.Tuiles.FindAsync(positionX - value, positionY + 2);
+                        break;
+                    case "left":
+                        tuile = await _context.Tuiles.FindAsync(positionX - 2, positionY + value);
+                        break;
+                    case "right":
+                        tuile = await _context.Tuiles.FindAsync(positionX + 2, positionY - value);
+                        break;
+                    default:
+                        return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\nValid inputs are: up, down, left, right");
+                }
+                if (tuile is null) tuilesArray[value] = null;
+                tuilesArray[value + 2] = tuile;
+            }
+            return tuilesArray;
+        }
+
+        // GET: api/Tuiles/10/10
+        //[HttpGet("{positionX}/{positionY}")]
+        //public async Task<ActionResult<Tuile[,]>> GetInitialTuiles(int positionX, int positionY)
+        //{
+        //    var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
+
+        //    if (tuile == null) return null;
+        //    return tuile;
+        //}
 
         // PUT: api/Tuiles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -145,6 +165,40 @@ namespace ApiV1ControlleurMonstre.Controllers
         private bool TuileExists(int id)
         {
             return _context.Tuiles.Any(e => e.PositionX == id);
+        }
+
+        private Tuile GenerateTuile(int positionX, int positionY)
+        {
+            Tuile tuile;
+            Random random = new Random();
+            int randomNumber = random.Next(1, 101);
+            TuileTypeEnum type;
+            string imageUrl;
+            if (randomNumber <= 20)
+            {
+                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Herbe, true, Tuile.stringImageUrl[TuileTypeEnum.Herbe]);
+            }
+            else if (randomNumber <= 30)
+            {
+                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Eau, false, Tuile.stringImageUrl[TuileTypeEnum.Eau]);
+            }
+            else if (randomNumber <= 45)
+            {
+                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Montagne, false, Tuile.stringImageUrl[TuileTypeEnum.Montagne]);
+            }
+            else if (randomNumber <= 60)
+            {
+                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Foret, true, Tuile.stringImageUrl[TuileTypeEnum.Foret]);
+            }
+            else if (randomNumber <= 65)
+            {
+                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Ville, true, Tuile.stringImageUrl[TuileTypeEnum.Ville]);
+            }
+            else
+            {
+                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Route, true, Tuile.stringImageUrl[TuileTypeEnum.Route]);
+            }
+            return tuile;
         }
     }
 }
