@@ -1,6 +1,10 @@
 const gameContainer = document.getElementById('grid-container')
-let posX = 8;
-let posY = 8;
+let posX = 10;
+let posY = 10;
+
+let gameGrid = Array.from({ length: 5 }, () => Array(5).fill(null));
+
+
 
 // Add event listeners for movement buttons
 document.getElementById('up-btn').addEventListener('click', () => moveGrid('up'));
@@ -17,14 +21,17 @@ async function GetTile(x, y, td) {
   try {
     // Remove the inner text from TD
     td.innerHTML = '';
-    const response = await fetch(`https://localhost:7223/api/Tuiles/${x}/${y}`);
-    const tile = await response.json()
+    console.log(`Fetching tile at (${x}, ${y})`);
+    const response = await fetch(`https://localhost:7223/api/Tuiles/GetOrCreateTuile/${x}/${y}`);
+    const tile = await response.json();
+    gameGrid[y - (posY - 2)][x - (posX - 2)] = tile; // Met à jour la tuile dans gameGrid
     td.style.cssText = `
     background-image: url(img/${tile.imageURL})
   `;
   } catch (error) {
     console.error('Erreur API : ', error)
   }
+  await displayGameGrid();
 }
 
 function showCoordinates(c, r) { 
@@ -33,55 +40,58 @@ function showCoordinates(c, r) {
   coord.innerHTML = c + ", " + r;
 }
 
+// Crée la grille de jeu 5x5 et mettre les tuiles aux bonnes positions dans gameGrid sans afficher
 async function createGrid() {
+  gameContainer.innerHTML = '';
   const table = document.createElement('table');
-  for (let r = posY; r < posY + 5; r++) {
+  for (let r = 0; r < 5; r++) {
     const tr = document.createElement('tr');
-    for (let c = posX; c < posX + 5; c++) {
+    for (let c = 0; c < 5; c++) {
       const td = document.createElement('td');
+      td.id = `tile-${posY - 2 + c}-${posX - 2 + r}`;
+      td.addEventListener('click', () => GetTile(posY - 2 + c, posX - 2 + r, td));
+      //td.addEventListener('click', () => showCoordinates(posX + c, posY + r));
 
-      // Calculer les coordonnées centrées
-      // const centeredX = c - Math.floor(cols / 2) + 10;
-      // const centeredY = r - Math.floor(rows / 2) + 10;
-
-      // const response = await fetch(`https://localhost:7223/api/Tuiles/GetOrCreateTuile/${c}/${r}`);
-      // const tile = await response.json()
-      // const centeredX = tile.positionX;
-      // const centeredY = tile.positionY;
-      
-      td.id = `tile-${c}-${r}`;
-
-      //td.addEventListener('mouseover', showCoordinates(c, r));
-      td.onclick = () => GetTile(c, r, td);
-      const tuileEmpty = document.createElement('p');
-      tuileEmpty.style.cssText = `
-      Font-Size: 2rem;`
-      tuileEmpty.innerText = `?`;
-      td.appendChild(tuileEmpty);
-
+      const p = document.createElement('p');
+      p.innerText = '?';
+      td.appendChild(p);
       tr.appendChild(td);
     }
     table.appendChild(tr);
   }
-
   gameContainer.appendChild(table);
-  displayDefaultTiles();
+  await GetInitialTuiles();
 }
 
-async function displayDefaultTiles() {
+// mettre à jour les tuiles par défaut dans gameGrid et sans les afficher
+async function GetInitialTuiles() {
   try {
-    const response = await fetch(`https://localhost:7223/api/Tuiles/GetInitialTuile/${posX}/${posY}`);
-    const tiles = await response.json();
-    
-    tiles.forEach(tile => {
-      const td = document.getElementById(`tile-${tile.positionX}-${tile.positionY}`);
-      if (td) {
-        td.innerHTML = '';
-        td.style.cssText = `background-image: url(img/${tile.imageURL})`;
+    const response = await fetch(`https://localhost:7223/api/Tuiles/GetInitialTuiles/${posX}/${posY}`);
+    const initialTiles = await response.json();
+    for(let i = 0; i < 5; i++) {
+      for(let j = 0; j < 5; j++) {
+        const tile = initialTiles[i][j];
+        gameGrid[i][j] = tile;
       }
-    });
+    }
   } catch (error) {
-    console.error('Erreur lors du chargement des tuiles initiales:', error);
+    console.error('Erreur API : ', error);
+  }
+  await displayGameGrid();
+}
+
+// affichage de la grille qui se trouve dans gameGrid
+async function displayGameGrid() {
+  for(let r = 0; r < 5; r++) {
+    for(let c = 0; c < 5; c++) {
+      const tile = gameGrid[r][c];
+      if(tile) {
+        const td = document.getElementById(`tile-${posX - 2 + c}-${posY - 2 + r}`);
+        if(td) {
+          td.style.cssText = `background-image: url(img/${tile.imageURL})`;
+        }
+      }
+    }
   }
 }
 
@@ -146,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //GetTuilesLine return tableau de tuile qui represente la ligne up, down, left, right avec la position du centre et non la direction
 //GetOrCreateTuile return tuile avec la position X et Y
-//GetInitialTuile retourne la grille initiale 5x5 avec la tuile du centre position du joueur
+//GetInitialTuiles retourne la grille initiale 5x5 avec la tuile du centre position du joueur
 
 async function moveGrid(direction) {
   try {
