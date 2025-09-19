@@ -83,21 +83,21 @@ namespace ApiV1ControlleurMonstre.Controllers
 
         //GET: api/Tuiles/10/10
         [HttpGet("GetInitialTuiles/{positionX}/{positionY}")]
-        public async Task<ActionResult<Tuile[,]>> GetInitialTuiles(int positionX, int positionY)
+        public async Task<ActionResult<List<Tuile>>> GetInitialTuiles(int positionX, int positionY)
         {
-            Tuile[,] tuilesArray = new Tuile[5,5];
+            List<Tuile> tuilesArray = new List<Tuile>();
             Tuile tuile = null;
 
             // Génere les tuiles adjacentes si elles ne sont pas généré
-            for (int x = -1; x <= 1; x++)
-            {
-                for (int y = -1; y <= 1; y++)
-                {
-                    tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
-                    if (tuile is null) await PostTuile(GenerateTuile(positionX + x, positionY + y)); ;
-                    tuilesArray[x + 1,y + 1] = tuile;
-                }
-            }
+            //for (int x = -1; x <= 1; x++)
+            //{
+            //    for (int y = -1; y <= 1; y++)
+            //    {
+            //        tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
+            //        if (tuile is null) await PostTuile(GenerateTuile(positionX + x, positionY + y)); ;
+            //        tuilesArray[x + 1,y + 1] = tuile;
+            //    }
+            //}
 
             // Prend toutes les tuiles dans la map
             for (int x = -2; x <= 2; x++)
@@ -105,8 +105,12 @@ namespace ApiV1ControlleurMonstre.Controllers
                 for (int y = -2; y <= 2; y++)
                 {
                     tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
-                    if (tuile is null) tuilesArray[x + 2, y + 2] = null;
-                    tuilesArray[x + 2,y + 2] = tuile;
+                    if ((x >= -1 && x <= 1) && (y >= -1 && y <= 1) && tuile is null)
+                    {
+                        await PostTuile(GenerateTuile(positionX + x, positionY + y));
+                        tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
+                    }
+                    tuilesArray.Add(tuile);
                 }
             }
             return tuilesArray;
