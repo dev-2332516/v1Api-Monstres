@@ -40,9 +40,9 @@ namespace ApiV1ControlleurMonstre.Controllers
             if (tuile == null)
             {
                 await PostTuile(GenerateTuile(positionX, positionY));
+                tuile = await _context.Tuiles.FindAsync(positionX, positionY);
             }
-
-            return tuile;
+                return tuile;
         }
 
         // GET: api/Tuiles/10/10
@@ -87,17 +87,6 @@ namespace ApiV1ControlleurMonstre.Controllers
         {
             List<Tuile> tuilesArray = new List<Tuile>();
             Tuile tuile = null;
-
-            // Génere les tuiles adjacentes si elles ne sont pas généré
-            //for (int x = -1; x <= 1; x++)
-            //{
-            //    for (int y = -1; y <= 1; y++)
-            //    {
-            //        tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
-            //        if (tuile is null) await PostTuile(GenerateTuile(positionX + x, positionY + y)); ;
-            //        tuilesArray[x + 1,y + 1] = tuile;
-            //    }
-            //}
 
             // Prend toutes les tuiles dans la map
             for (int x = -2; x <= 2; x++)
