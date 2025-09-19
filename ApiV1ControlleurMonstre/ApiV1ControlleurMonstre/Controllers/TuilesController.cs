@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,15 +81,36 @@ namespace ApiV1ControlleurMonstre.Controllers
             return tuilesArray;
         }
 
-        // GET: api/Tuiles/10/10
-        //[HttpGet("{positionX}/{positionY}")]
-        //public async Task<ActionResult<Tuile[,]>> GetInitialTuiles(int positionX, int positionY)
-        //{
-        //    var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
+        //GET: api/Tuiles/10/10
+        [HttpGet("GetInitialTuiles/{positionX}/{positionY}")]
+        public async Task<ActionResult<Tuile[,]>> GetInitialTuiles(int positionX, int positionY)
+        {
+            Tuile[,] tuilesArray = new Tuile[5,5];
+            Tuile tuile = null;
 
-        //    if (tuile == null) return null;
-        //    return tuile;
-        //}
+            // Génere les tuiles adjacentes si elles ne sont pas généré
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
+                {
+                    tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
+                    if (tuile is null) await PostTuile(GenerateTuile(positionX + x, positionY + y)); ;
+                    tuilesArray[x + 1,y + 1] = tuile;
+                }
+            }
+
+            // Prend toutes les tuiles dans la map
+            for (int x = -2; x <= 2; x++)
+            {
+                for (int y = -2; y <= 2; y++)
+                {
+                    tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
+                    if (tuile is null) tuilesArray[x + 2, y + 2] = null;
+                    tuilesArray[x + 2,y + 2] = tuile;
+                }
+            }
+            return tuilesArray;
+        }
 
         // PUT: api/Tuiles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
