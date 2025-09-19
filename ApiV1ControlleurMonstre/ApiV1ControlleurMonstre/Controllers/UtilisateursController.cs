@@ -1,9 +1,11 @@
 ﻿using ApiV1ControlleurMonstre.Data.Context;
 using ApiV1ControlleurMonstre.Models;
+using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -32,14 +34,21 @@ namespace ApiV1ControlleurMonstre.Controllers
         {
             utilisateur.DateInscription = DateTime.Now;
             // Immediatement hasher le mot de passe
-            utilisateur.Password = Hashing.Compute(utilisateur.Password);              
+            utilisateur.Password = Hashing.Compute(utilisateur.Password);
 
             // Éviter un Id redondant
             utilisateur.Id = 0;
             // Prendre une liste complète pour crée l'Id
-            int lastId = _context.Utilisateurs.ToListAsync().Result.Last().Id;
-            if (lastId == 0) utilisateur.Id = 0;
-            else utilisateur.Id = lastId + 1;
+            int lastId = 0;
+            try
+            {
+                lastId = _context.Utilisateurs.ToListAsync().Result.Last().Id;
+            }
+            catch
+            {
+                if (lastId == 0) utilisateur.Id = 0;
+                else utilisateur.Id = lastId + 1;
+            }
 
             if (ModelState.IsValid && !UtilisateurExist(utilisateur.Email))
             {
@@ -52,48 +61,37 @@ namespace ApiV1ControlleurMonstre.Controllers
             return utilisateur;
         }
 
-        //// GET: Utilisateurs
-        //public async Task<IActionResult> Index()
-        //{
-        //    return View(await _context.Utilisateurs.ToListAsync());
-        //}
+        [HttpPost("login/{email}/{password}")]
+        public async Task<ActionResult<Utilisateur>> Login(string email, string password)
+        {
+            string hashedPassword = Hashing.Compute(password);
+            password = null;
+            Utilisateur utilisateur = _context.Utilisateurs.ToListAsync().Result.Where(user => user.Email == email || password == hashedPassword).First();
+            if (utilisateur is null) return BadRequest("InvalidEmailPassword: Email or password is incorrect");
+            // Connecte l'utilisateur avant de le retirer
+            _context.Remove(utilisateur);
+            utilisateur.IsConnected = true;
+            _context.Add(utilisateur);
+            await _context.SaveChangesAsync();
+            return utilisateur;
+        }
 
-        // POST: Utilisateurs/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, [Bind("Id,Email,Pseudo,Password,DateInscription")] Utilisateur utilisateur)
-        //{
-        //    if (id != utilisateur.Id)
-        //    {
-        //        return NotFound();
-        //    }
+        [HttpPost("logout/{id}")]
+        public async Task<ActionResult> Logout(int id)
+        {
+            // Connecte l'utilisateur avant de le retirer
+            Utilisateur utilisateur = _context.Utilisateurs.ToListAsync().Result.Where(user => user.Id == id).First();
+            if (utilisateur == null) return BadRequest("InvalidID: Id invalide");
+            else if (utilisateur.IsConnected)
+            {
+                _context.Remove(utilisateur);
+                utilisateur.IsConnected = false;
+                _context.Add(utilisateur);
+                await _context.SaveChangesAsync();
+            }
+            return Ok();
+        }
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            _context.Update(utilisateur);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!UtilisateurExists(utilisateur.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    return View(utilisateur);
-        //}
-
-        // GET: Utilisateurs/Delete/5
 
         private bool UtilisateurExist(string email)
         {
@@ -117,9 +115,9 @@ namespace ApiV1ControlleurMonstre.Controllers
                     return match.Groups[1].Value + domainName;
                 }
             }
-            catch (RegexMatchTimeoutException e) { return false; } 
+            catch (RegexMatchTimeoutException e) { return false; }
             catch (ArgumentException e) { return false; }
-           
+
             try
             {
                 return Regex.IsMatch(email,

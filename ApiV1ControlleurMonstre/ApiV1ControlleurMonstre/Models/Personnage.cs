@@ -30,7 +30,7 @@
             PositionX = positionX;
             PositionY = positionY;
             UtilisateurID = utilisateurID;
-            DateCreation = DateTime.Now;
+            DateCreation = dateCreation;
         }
     }
 }

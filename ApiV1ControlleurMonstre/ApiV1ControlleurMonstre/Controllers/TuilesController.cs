@@ -75,7 +75,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                     default:
                         return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\nValid inputs are: up, down, left, right");
                 }
-                if (tuile is null) tuilesArray[value] = null;
+                if (tuile is null) tuilesArray[value + 2] = null;
                 tuilesArray[value + 2] = tuile;
             }
             return tuilesArray;
