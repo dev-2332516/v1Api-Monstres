@@ -68,12 +68,11 @@ async function GetInitialTuiles() {
   try {
     const response = await fetch(`https://localhost:7223/api/Tuiles/GetInitialTuiles/${posX}/${posY}`);
     const initialTiles = await response.json();
-    for(let i = 0; i < 5; i++) {
-      for(let j = 0; j < 5; j++) {
-        const tile = initialTiles[i][j];
-        gameGrid[i][j] = tile;
-      }
-    }
+    initialTiles.forEach((tile, index) => {
+      const row = Math.floor(index / 5);
+      const col = index % 5;
+      gameGrid[col][row] = tile;
+    });
   } catch (error) {
     console.error('Erreur API : ', error);
   }
@@ -188,6 +187,7 @@ async function moveGrid(direction) {
 
     // Update tiles with new data
     newTiles.forEach(tile => {
+      if (!tile) return; // Skip if tile is null
       const td = document.getElementById(`tile-${tile.positionX}-${tile.positionY}`);
       if (td) {
         td.innerHTML = '';
