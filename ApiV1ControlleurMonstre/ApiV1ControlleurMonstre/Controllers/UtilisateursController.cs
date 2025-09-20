@@ -33,8 +33,9 @@ namespace ApiV1ControlleurMonstre.Controllers
         public async Task<ActionResult<Utilisateur>> Register([FromBody] Utilisateur utilisateur)
         {
             utilisateur.DateInscription = DateTime.Now;
-            // Immediatement hasher le mot de passe
+            // Immediatement hasher le mot de passe et creer un token
             utilisateur.Password = Hashing.Compute(utilisateur.Password);
+            utilisateur.Token = Hashing.GenerateToken(32);
 
             // Éviter un Id redondant
             utilisateur.Id = 0;
