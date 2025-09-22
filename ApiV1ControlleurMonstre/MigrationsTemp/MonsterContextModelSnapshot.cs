@@ -4,7 +4,6 @@ using ApiV1ControlleurMonstre.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -12,11 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     [DbContext(typeof(MonsterContext))]
-    [Migration("20250919202415_newmigration2")]
-    partial class newmigration2
+    partial class MonsterContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,7 +63,7 @@ namespace ApiV1ControlleurMonstre.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Monstre");
+                    b.ToTable("Monstre", (string)null);
                 });
 
             modelBuilder.Entity("ApiV1ControlleurMonstre.Models.Personnage", b =>
@@ -113,7 +110,7 @@ namespace ApiV1ControlleurMonstre.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Personnages");
+                    b.ToTable("Personnages", (string)null);
                 });
 
             modelBuilder.Entity("ApiV1ControlleurMonstre.Models.Tuile", b =>
@@ -136,7 +133,7 @@ namespace ApiV1ControlleurMonstre.Migrations
 
                     b.HasKey("PositionX", "PositionY");
 
-                    b.ToTable("Tuiles");
+                    b.ToTable("Tuiles", (string)null);
                 });
 
             modelBuilder.Entity("ApiV1ControlleurMonstre.Models.Utilisateur", b =>
@@ -165,9 +162,13 @@ namespace ApiV1ControlleurMonstre.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Utilisateurs");
+                    b.ToTable("utilisateur", (string)null);
                 });
 #pragma warning restore 612, 618
         }

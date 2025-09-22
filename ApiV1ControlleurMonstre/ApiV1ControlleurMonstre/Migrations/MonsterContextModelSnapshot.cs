@@ -164,7 +164,7 @@ namespace ApiV1ControlleurMonstre.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Utilisateurs");
+                    b.ToTable("utilisateur", (string)null);
                 });
 #pragma warning restore 612, 618
         }

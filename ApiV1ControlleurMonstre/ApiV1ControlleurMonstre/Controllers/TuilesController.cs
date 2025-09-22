@@ -45,6 +45,15 @@ namespace ApiV1ControlleurMonstre.Controllers
                 return tuile;
         }
 
+        // GET: api/GetTuile/10/10
+        [HttpGet("GetTuile/{positionX}/{positionY}")]
+        public async Task<ActionResult<Tuile>> GetTuile(int positionX, int positionY)
+        {
+            var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
+            if (tuile is null) return null;
+            return tuile;
+        }
+
         // GET: api/Tuiles/10/10
         // Get une ligne de tuiles à partir d'une orientation
         [HttpGet("GetTuilesLine/{positionX}/{positionY}/{orientation}")]
@@ -53,30 +62,38 @@ namespace ApiV1ControlleurMonstre.Controllers
             // Verifier si l'orientation est valide
             if (orientation != "up" && orientation != "down" && orientation != "left" && orientation != "right")
                 return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\n\tValid inputs are: up, down, left, right");
-            Tuile[] tuilesArray = new Tuile[5];
+            Tuile[] tuilesArray = new Tuile[3];
             Tuile tuile = null;
 
-            for (int value = -2; value <= 2; value++)
+            for (int value = -1; value <= 1; value++)
             {
                 switch (orientation)
                 {
                     case "up":
-                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 2);
+                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
+                        if (tuile == null) await PostTuile(GenerateTuile(positionX + value, positionY - 1));
+                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
                         break;
                     case "down":
                         tuile = await _context.Tuiles.FindAsync(positionX - value, positionY + 2);
+                        if (tuile == null) await PostTuile(GenerateTuile(positionX - value, positionY + 1));
+                        tuile = await _context.Tuiles.FindAsync(positionX - value, positionY + 1);
                         break;
                     case "left":
                         tuile = await _context.Tuiles.FindAsync(positionX - 2, positionY + value);
+                        if (tuile == null) await PostTuile(GenerateTuile(positionX - 2, positionY + value));
+                        tuile = await _context.Tuiles.FindAsync(positionX - value, positionY + value);
                         break;
                     case "right":
                         tuile = await _context.Tuiles.FindAsync(positionX + 2, positionY - value);
+                        if (tuile == null) await PostTuile(GenerateTuile(positionX + 2, positionY - value));
+                        tuile = await _context.Tuiles.FindAsync(positionX + 2, positionY -value);
                         break;
                     default:
                         return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\nValid inputs are: up, down, left, right");
                 }
-                if (tuile is null) tuilesArray[value + 2] = null;
-                tuilesArray[value + 2] = tuile;
+                if (tuile is null) tuilesArray[value + 1] = null;
+                else tuilesArray[value + 1] = tuile;
             }
             return tuilesArray;
         }

@@ -14,6 +14,7 @@ namespace ApiV1ControlleurMonstre.Data.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Utilisateur>().ToTable("utilisateur");
             modelBuilder.Entity<Tuile>()
                 .HasKey(t => new { t.PositionX, t.PositionY });
 

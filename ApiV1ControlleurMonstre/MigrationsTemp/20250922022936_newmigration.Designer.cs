@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     [DbContext(typeof(MonsterContext))]
-    [Migration("20250918123940_UserUpdate1")]
-    partial class UserUpdate1
+    [Migration("20250922022936_newmigration")]
+    partial class newmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -154,6 +154,9 @@ namespace ApiV1ControlleurMonstre.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsConnected")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -162,9 +165,13 @@ namespace ApiV1ControlleurMonstre.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Utilisateurs");
+                    b.ToTable("utilisateur", (string)null);
                 });
 #pragma warning restore 612, 618
         }
