@@ -101,23 +101,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if(loginForm){
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('login-username').value;
-      const password = document.getElementById('login-password').value;
+      const email = document.getElementById('email-login').value;
+      const password = document.getElementById('password-login').value;
       try {
-        const response = await fetch('https://localhost:7223/api/auth/login', {
+        const response = await fetch(`https://localhost:7223/api/utilisateurs/login/${email}/${password}`, {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({username, password})
+          headers: {'Content-Type': 'application/json'}
         });
         if(response.ok){
-          //const data = await response.json();
-          //localStorage.setItem('token', data.token);
-          window.location.href = 'index.html';
+          const token = await response.text(); // La réponse renvoie seulement le token JWT
+          localStorage.setItem('jwtToken', token);
+          updateUIBasedOnAuth();
+          document.getElementById('login-message').textContent = 'Connexion réussie !';
         } else {
-          alert("Identifiants invalides !");
+          const errorText = await response.text();
+          document.getElementById('login-message').textContent = 'Erreur: ' + errorText;
         }
       } catch (err){
-        alert("Erreur de connexion au serveur.");
+        document.getElementById('login-message').textContent = 'Erreur de connexion au serveur.';
+        console.error('Erreur login:', err);
       }
     });
   }
@@ -127,27 +129,31 @@ document.addEventListener('DOMContentLoaded', () => {
   if(registerForm){
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('register-email').value;
-      const username = document.getElementById('register-username').value;
-      const password = document.getElementById('register-password').value;
+      const email = document.getElementById('email-register').value;
+      const pseudo = document.getElementById('pseudo-register').value;
+      const password = document.getElementById('password-register').value;
       try {
-        const response = await fetch('https://localhost:7223/api/auth/register', {
+        const response = await fetch('https://localhost:7223/api/utilisateurs/register', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             email,
-            username,
+            pseudo,
             password
           })
         });
         if(response.ok){
-          alert("Inscription réussie, connecte-toi !");
-          window.location.href = 'login.html';
+          document.getElementById('register-message').textContent = 'Inscription réussie ! Vous pouvez maintenant vous connecter.';
+          // Basculer vers le formulaire de login après inscription réussie
+          document.getElementById('register-box').style.display = 'none';
+          document.getElementById('login-box').style.display = 'block';
         } else {
-          alert("Erreur lors de l'inscription.");
+          const errorText = await response.text();
+          document.getElementById('register-message').textContent = 'Erreur: ' + errorText;
         }
       } catch (err){
-        alert("Erreur de connexion au serveur.");
+        document.getElementById('register-message').textContent = 'Erreur de connexion au serveur.';
+        console.error('Erreur register:', err);
       }
     });
   }
@@ -166,16 +172,16 @@ async function moveGrid(direction) {
     // Update position based on direction
     switch(direction) {
       case 'up':
-        posY--;
-        break;
-      case 'down': 
-        posY++;
-        break;
-      case 'left':
         posX--;
         break;
-      case 'right':
+      case 'down': 
         posX++;
+        break;
+      case 'left':
+        posY--;
+        break;
+      case 'right':
+        posY++;
         break;
     }
 
@@ -226,3 +232,75 @@ function showErrorPopup(message) {
   document.head.appendChild(style);
 }
 
+// Fonction pour vérifier si l'utilisateur est connecté
+function isUserLoggedIn() {
+  return !!localStorage.getItem('jwtToken');
+}
+
+// Fonction pour mettre à jour l'UI selon l'état d'authentification
+function updateUIBasedOnAuth() {
+  const logoutBtn = document.getElementById('logout-btn');
+  
+  if (isUserLoggedIn()) {
+    // Utilisateur connecté : cacher le formulaire, afficher le jeu et le bouton logout
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('game-container').style.display = 'flex';
+    if (logoutBtn) {
+      logoutBtn.style.display = 'block';
+    }
+  } else {
+    // Pas connecté : affichage formulaire, cacher jeu et bouton logout
+    document.getElementById('auth-container').style.display = 'block';
+    document.getElementById('game-container').style.display = 'none';
+    if (logoutBtn) {
+      logoutBtn.style.display = 'none';
+    }
+  }
+}
+
+// Gestionnaire de logout
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  try {
+    // Supprimer le token du localStorage
+    localStorage.removeItem('jwtToken');
+    
+    // Mettre à jour l'UI : masquer le jeu, afficher le formulaire de connexion
+    updateUIBasedOnAuth();
+    
+    // Réinitialiser les messages
+    document.getElementById('login-message').textContent = '';
+    if (document.getElementById('register-message')) {
+      document.getElementById('register-message').textContent = '';
+    }
+    
+    console.log('Déconnexion réussie');
+
+  } catch (err) {
+    console.error('Erreur lors de la déconnexion:', err);
+    alert('Impossible de se déconnecter.');
+  }
+});
+
+// Gestionnaire pour basculer entre login et register
+document.addEventListener('DOMContentLoaded', () => {
+  // Vérifier l'état d'auth au chargement
+  updateUIBasedOnAuth();
+  
+  // Toggle vers register
+  const showRegisterBtn = document.getElementById('show-register');
+  if (showRegisterBtn) {
+    showRegisterBtn.addEventListener('click', () => {
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('register-box').style.display = 'block';
+    });
+  }
+  
+  // Toggle vers login
+  const showLoginBtn = document.getElementById('show-login');
+  if (showLoginBtn) {
+    showLoginBtn.addEventListener('click', () => {
+      document.getElementById('register-box').style.display = 'none';
+      document.getElementById('login-box').style.display = 'block';
+    });
+  }
+});

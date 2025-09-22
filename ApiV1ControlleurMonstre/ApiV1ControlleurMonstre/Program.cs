@@ -1,6 +1,11 @@
 
 using ApiV1ControlleurMonstre.Data.Context;
+using ApiV1ControlleurMonstre.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using System.Configuration;
+using System.Text;
 
 namespace ApiV1ControlleurMonstre
 {
@@ -10,29 +15,55 @@ namespace ApiV1ControlleurMonstre
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddCors(opt =>
+            // 1. Charger la section JwtSettings
+            var jwtSection = builder.Configuration.GetSection("JwtSettings");
+            builder.Services.Configure<JwtSettings>(jwtSection);
+            var jwtSettings = jwtSection.Get<JwtSettings>();
+            var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
+
+            // 2. Configurer l’authentification JWT
+            builder.Services.AddAuthentication(options =>
             {
-                opt.AddPolicy("CorsPolicy", policyBuilder =>
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    policyBuilder.AllowAnyHeader().AllowAnyMethod().WithOrigins("*");
-                });
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
             });
 
-            // Add services to the container.
+            // 3. Autres services
+            builder.Services.AddCors(opt =>
+            {
+                opt.AddPolicy("CorsPolicy", policy =>
+                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("*"));
+            });
+
             builder.Services.AddDbContext<MonsterContext>(options =>
             {
-                var connectionString = builder.Configuration.GetConnectionString("Default");
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                var conn = builder.Configuration.GetConnectionString("Default");
+                options.UseMySql(conn, ServerVersion.AutoDetect(conn));
             });
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // 4. Pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -41,13 +72,15 @@ namespace ApiV1ControlleurMonstre
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             app.UseCors("CorsPolicy");
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 
             app.Run();
+
         }
     }
 }

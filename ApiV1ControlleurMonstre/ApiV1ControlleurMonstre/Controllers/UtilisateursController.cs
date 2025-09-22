@@ -1,19 +1,14 @@
 ﻿using ApiV1ControlleurMonstre.Data.Context;
 using ApiV1ControlleurMonstre.Models;
-using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net.Mail;
-using System.Security;
-using System.Text.RegularExpressions;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ApiV1ControlleurMonstre.Controllers
@@ -23,109 +18,97 @@ namespace ApiV1ControlleurMonstre.Controllers
     public class UtilisateursController : Controller
     {
         private readonly MonsterContext _context;
+        private readonly JwtSettings _jwtSettings;
 
-        public UtilisateursController(MonsterContext context)
+        public UtilisateursController(MonsterContext context, IOptions<JwtSettings> options)
         {
             _context = context;
+            _jwtSettings = options.Value;
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<Utilisateur>> Register([FromBody] Utilisateur utilisateur)
         {
-            utilisateur.DateInscription = DateTime.Now;
-            // Immediatement hasher le mot de passe et creer un token
+            if (UtilisateurExist(utilisateur.Email))
+                return Conflict("EmailAlreadyExists");
+
             utilisateur.Password = Hashing.Compute(utilisateur.Password);
-            utilisateur.Token = Hashing.GenerateToken(32);
+            utilisateur.DateInscription = DateTime.Now;
+            utilisateur.IsConnected = false;
 
-            // Éviter un Id redondant
-            utilisateur.Id = 0;
-            // Prendre une liste complète pour crée l'Id
-            int lastId = 0;
-            try
-            {
-                lastId = _context.Utilisateurs.ToListAsync().Result.Last().Id;
-            }
-            catch
-            {
-                if (lastId == 0) utilisateur.Id = 0;
-                else utilisateur.Id = lastId + 1;
-            }
+            _context.Utilisateurs.Add(utilisateur);
+            await _context.SaveChangesAsync();
 
-            if (ModelState.IsValid && !UtilisateurExist(utilisateur.Email))
-            {
-                _context.Add(utilisateur);
-                await _context.SaveChangesAsync();
-            }
-            else if (!ModelState.IsValid) return BadRequest("Invalid: JSON entry was invalid");
-            else if (UtilisateurExist(utilisateur.Email)) return Conflict("EmailAlreadyExists: Email adress entered already exists");
+            // Créer un personnage par défaut lié à ce nouvel utilisateur
+            var personnage = new Personnage
+                {
+                    UtilisateurID = utilisateur.Id,
+                    Name = $"Hero_{utilisateur.Id}",
+                    Niveau = 1,
+                    Experience = 0,
+                    PointsVie = 100,           // valeur de départ, ajustable
+                    PointsVieMax = 100,        // valeur maximale, ajustable
+                    Force = 10,                // valeur de base, ajustable
+                    Defense = 5,               // valeur de base, ajustable
+                    PositionX = 0,
+                    PositionY = 0,
+                    DateCreation = DateTime.Now
+                };
+
+            _context.Personnages.Add(personnage);
+            await _context.SaveChangesAsync();
 
             return utilisateur;
         }
 
         [HttpPost("login/{email}/{password}")]
-        public async Task<ActionResult<Utilisateur>> Login(string email, string password)
+        public async Task<ActionResult<string>> Login(string email, string password)
         {
-            string hashedPassword = Hashing.Compute(password);
-            password = null;
-            Utilisateur utilisateur = _context.Utilisateurs.ToListAsync().Result.Where(user => user.Email == email || password == hashedPassword).First();
-            if (utilisateur is null) return BadRequest("InvalidEmailPassword: Email or password is incorrect");
-            // Connecte l'utilisateur avant de le retirer
-            _context.Remove(utilisateur);
-            utilisateur.IsConnected = true;
-            _context.Add(utilisateur);
-            await _context.SaveChangesAsync();
-            return utilisateur;
+            // Vérification de l'utilisateur
+            var utilisateur = await _context.Utilisateurs
+                .FirstOrDefaultAsync(u => u.Email == email && u.Password == Hashing.Compute(password));
+
+            if (utilisateur == null)
+                return Unauthorized("InvalidEmailPassword");
+
+            var token = GenerateJwtToken(utilisateur);
+            return Ok(token);
         }
+
 
         [HttpPost("logout/{id}")]
         public async Task<ActionResult> Logout(int id)
         {
-            // Connecte l'utilisateur avant de le retirer
-            Utilisateur utilisateur = _context.Utilisateurs.ToListAsync().Result.Where(user => user.Id == id).First();
-            if (utilisateur == null) return BadRequest("InvalidID: Id invalide");
-            else if (utilisateur.IsConnected)
-            {
-                _context.Remove(utilisateur);
-                utilisateur.IsConnected = false;
-                _context.Add(utilisateur);
-                await _context.SaveChangesAsync();
-            }
+            var utilisateur = await _context.Utilisateurs.FindAsync(id);
+            if (utilisateur == null) return NotFound("InvalidID");
+
+            utilisateur.IsConnected = false;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
-
         private bool UtilisateurExist(string email)
         {
-            return _context.Utilisateurs.Any(user => user.Email == email);
+            return _context.Utilisateurs.Any(u => u.Email == email);
         }
 
-        // Code tirée de l'article suivant https://learn.microsoft.com/en-us/dotnet/standard/base-types/how-to-verify-that-strings-are-in-valid-email-format
-        public static bool IsValidEmailOther(string email)
+        private string GenerateJwtToken(Utilisateur utilisateur)
         {
-            if (string.IsNullOrWhiteSpace(email)) return false;
-
-            try
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                email = Regex.Replace(email, @"(@)(.+)$", DomainMapper, RegexOptions.None, TimeSpan.FromMilliseconds(200));
-
-                string DomainMapper(Match match)
+                Subject = new ClaimsIdentity(new Claim[]
                 {
-                    var idn = new IdnMapping();
-                    string domainName = idn.GetAscii(match.Groups[2].Value);
-
-                    return match.Groups[1].Value + domainName;
-                }
-            }
-            catch (RegexMatchTimeoutException e) { return false; }
-            catch (ArgumentException e) { return false; }
-
-            try
-            {
-                return Regex.IsMatch(email,
-                    @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
-                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
-            }
-            catch (RegexMatchTimeoutException) { return false; }
+                    new Claim(ClaimTypes.NameIdentifier, utilisateur.Id.ToString()),
+                    new Claim(ClaimTypes.Email, utilisateur.Email),
+                }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

@@ -58,45 +58,45 @@ namespace ApiV1ControlleurMonstre.Controllers
             return personnage;
         }
 
-        [HttpPut("MovePersonnage/{id}/{newX}/{newY}")]
-        public async Task<IActionResult> MovePersonnage(int id, int newX, int newY)
-        {
-            Request.Headers.TryGetValue("userToken", out var token);
-            if (_context.Utilisateurs.ToListAsync().Result.Where(user => user.Token == token).FirstOrDefault() is not null)
-            {
+        //[HttpPut("MovePersonnage/{id}/{newX}/{newY}")]
+        //public async Task<IActionResult> MovePersonnage(int id, int newX, int newY)
+        //{
+        //    Request.Headers.TryGetValue("userToken", out var token);
+        //    if (_context.Utilisateurs.ToListAsync().Result.Where(user => user.Token == token).FirstOrDefault() is not null)
+        //    {
 
-                var personnage = await _context.Personnages.FindAsync(id);
-                if (personnage == null)
-                {
-                    return NotFound();
-                }
-                // Check si le personnage est dans les bounds
-                if ((newX < 0 || newX > 100 || newY < 0 || newY > 100) && (newX < 2 || newX > 98 || newY < 2 || newY > 98))
-                {
-                    return BadRequest("New position is out of bounds.");
-                }
-                personnage.PositionX = newX;
-                personnage.PositionY = newY;
-                _context.Entry(personnage).State = EntityState.Modified;
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PersonnageExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return NoContent();
-            }
-            else return Unauthorized("InvalidToken: Token is invalid or missing");
-        }
+        //        var personnage = await _context.Personnages.FindAsync(id);
+        //        if (personnage == null)
+        //        {
+        //            return NotFound();
+        //        }
+        //        // Check si le personnage est dans les bounds
+        //        if ((newX < 0 || newX > 100 || newY < 0 || newY > 100) && (newX < 2 || newX > 98 || newY < 2 || newY > 98))
+        //        {
+        //            return BadRequest("New position is out of bounds.");
+        //        }
+        //        personnage.PositionX = newX;
+        //        personnage.PositionY = newY;
+        //        _context.Entry(personnage).State = EntityState.Modified;
+        //        try
+        //        {
+        //            await _context.SaveChangesAsync();
+        //        }
+        //        catch (DbUpdateConcurrencyException)
+        //        {
+        //            if (!PersonnageExists(id))
+        //            {
+        //                return NotFound();
+        //            }
+        //            else
+        //            {
+        //                throw;
+        //            }
+        //        }
+        //        return NoContent();
+        //    }
+        //    else return Unauthorized("InvalidToken: Token is invalid or missing");
+        //}
 
 
         private bool PersonnageExists(int id)
