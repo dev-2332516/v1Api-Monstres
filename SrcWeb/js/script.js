@@ -95,6 +95,7 @@ async function GetInitialTuiles() {
 
 // affichage de la grille qui se trouve dans gameGrid
 async function displayGameGrid() {
+  showCoordinates(gameGrid[2][2].positionX, gameGrid[2][2].positionY)
   for (let x = -2; x <= 2; x++) {
     for (let y = -2; y <= 2; y++) {
       const tile = gameGrid[y + 2][x + 2];
