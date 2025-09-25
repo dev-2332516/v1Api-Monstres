@@ -53,7 +53,7 @@ namespace ApiV1ControlleurMonstre
 
             builder.Services.AddDbContext<MonsterContext>(options =>
             {
-                var conn = builder.Configuration.GetConnectionString("Local");
+                var conn = builder.Configuration.GetConnectionString("Default");
                 options.UseMySql(conn, ServerVersion.AutoDetect(conn));
             });
 

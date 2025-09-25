@@ -72,6 +72,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                 return Unauthorized("InvalidEmailPassword");
 
             var token = GenerateJwtToken(utilisateur);
+            utilisateur.Token = token;
             return Ok(token);
         }
 

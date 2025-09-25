@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -59,6 +60,8 @@ namespace ApiV1ControlleurMonstre.Controllers
         [HttpGet("GetTuilesLine/{positionX}/{positionY}/{orientation}")]
         public async Task<ActionResult<Tuile[]>> GetTuilesLine(int positionX, int positionY, string orientation)
         {
+            HttpContext.Request.Headers.TryGetValue("userToken", out StringValues headerValue);
+            string first = headerValue.FirstOrDefault();
             // Verifier si l'orientation est valide
             if (orientation != "up" && orientation != "down" && orientation != "left" && orientation != "right")
                 return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\n\tValid inputs are: up, down, left, right");
