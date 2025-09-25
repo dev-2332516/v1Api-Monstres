@@ -57,12 +57,22 @@ namespace ApiV1ControlleurMonstre.Controllers
 
         // GET: api/Tuiles/10/10
         // Get une ligne de tuiles à partir d'une orientation
-        [HttpGet("GetTuilesLine/{positionX}/{positionY}/{orientation}")]
-        public async Task<ActionResult<Tuile[]>> GetTuilesLine(int positionX, int positionY, string orientation)
+        [HttpGet("GetTuilesLine/{orientation}")]
+        public async Task<ActionResult<Tuile[]>> GetTuilesLine(string orientation)
         {
-            // Verifier si l'orientation est valide
+            Request.Headers.TryGetValue("userToken", out StringValues token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
+            if (user == null) return Unauthorized("InvalidToken");
+            var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
+            if (personnage == null) return NotFound("PersonnageNotFound");
+
+            int positionX = personnage.PositionX;
+            int positionY = personnage.PositionY;
+
+            // Vérifier si l'orientation est valide
             if (orientation != "up" && orientation != "down" && orientation != "left" && orientation != "right")
-                return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\n\tValid inputs are: up, down, left, right");
+                return BadRequest($"InvalidOrientation: Orientation \"{orientation}\" is invalid\n\tValid inputs are: up, down, left, right");
+            
             Tuile[] tuilesArray = new Tuile[3];
             Tuile tuile = null;
 
@@ -76,19 +86,19 @@ namespace ApiV1ControlleurMonstre.Controllers
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
                         break;
                     case "down":
-                        tuile = await _context.Tuiles.FindAsync(positionX - value, positionY + 2);
-                        if (tuile == null) await PostTuile(GenerateTuile(positionX - value, positionY + 1));
-                        tuile = await _context.Tuiles.FindAsync(positionX - value, positionY + 1);
+                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
+                        if (tuile == null) await PostTuile(GenerateTuile(positionX + value, positionY + 1));
+                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
                         break;
                     case "left":
                         tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
                         if (tuile == null) await PostTuile(GenerateTuile(positionX - 1, positionY + value));
-                        tuile = await _context.Tuiles.FindAsync(positionX - value, positionY + value);
+                        tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
                         break;
                     case "right":
-                        tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY - value);
-                        if (tuile == null) await PostTuile(GenerateTuile(positionX + 1, positionY - value));
-                        tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY -value);
+                        tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
+                        if (tuile == null) await PostTuile(GenerateTuile(positionX + 1, positionY + value));
+                        tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
                         break;
                     default:
                         return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\nValid inputs are: up, down, left, right");
@@ -99,10 +109,18 @@ namespace ApiV1ControlleurMonstre.Controllers
             return tuilesArray;
         }
 
-        //GET: api/Tuiles/10/10
-        [HttpGet("GetInitialTuiles/{positionX}/{positionY}")]
-        public async Task<ActionResult<List<Tuile>>> GetInitialTuiles(int positionX, int positionY)
+        //GET: api/GetInitialTuiles
+        [HttpGet("GetInitialTuiles")]
+        public async Task<ActionResult<List<Tuile>>> GetInitialTuiles()
         {
+            Request.Headers.TryGetValue("userToken", out StringValues token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
+            if (user == null) return Unauthorized("InvalidToken");
+            var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
+            if (personnage == null) return NotFound("PersonnageNotFound");
+            int positionX = personnage.PositionX;
+            int positionY = personnage.PositionY;
+
             List<Tuile> tuilesArray = new List<Tuile>();
             Tuile tuile = null;
 

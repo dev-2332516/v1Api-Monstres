@@ -24,16 +24,21 @@ namespace ApiV1ControlleurMonstre.Controllers
             _context = context;
         }
 
-        [HttpGet("GetPersonnageFromUser/{userID}")]
-        public async Task<ActionResult<Personnage>> GetPersonnageFromUser(int userID)
+        [HttpGet("GetPersonnageFromUser/")]
+        public async Task<ActionResult<Personnage>> GetPersonnageFromUser()
         {
-            var personnage = await _context.Personnages
-                .FirstOrDefaultAsync(p => p.UtilisateurID == userID);
-            if (personnage == null)
+            Request.Headers.TryGetValue("userToken", out var token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
+            if (user is not null)
             {
-                return NotFound();
+                var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
+                if (personnage == null)
+                {
+                    return NotFound();
+                }
+                return personnage;
             }
-            return personnage;
+            else return Unauthorized("InvalidToken: Token is invalid or missing");
         }
 
         [HttpPost("CreatePersonnage/{userId}/{name}")]
@@ -59,25 +64,37 @@ namespace ApiV1ControlleurMonstre.Controllers
             return personnage;
         }
 
-        [HttpPut("MovePersonnage/{id}/{newX}/{newY}")]
-        public async Task<IActionResult> MovePersonnage(int id, int newX, int newY)
+        [HttpPut("MovePersonnage/{direction}")]
+        public async Task<IActionResult> MovePersonnage(string direction)
         {
-            Request.Headers.TryGetValue("userToken", out StringValues token);
-            if (_context.Utilisateurs.ToListAsync().Result.Where(user => user.Token == token).FirstOrDefault() is not null)
+            Request.Headers.TryGetValue("userToken", out var token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
+            if (user is not null)
             {
-
-                var personnage = await _context.Personnages.FindAsync(id);
+                var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
                 if (personnage == null)
                 {
                     return NotFound();
                 }
-                // Check si le personnage est dans les bounds
-                if ((newX < 0 || newX > 100 || newY < 0 || newY > 100) && (newX < 2 || newX > 98 || newY < 2 || newY > 98))
+
+                switch (direction.ToLower())
                 {
-                    return BadRequest("New position is out of bounds.");
+                    case "up":
+                        if (personnage.PositionY < 98) personnage.PositionY += 1;
+                        break;
+                    case "down":
+                        if (personnage.PositionY > 2) personnage.PositionY -= 1;
+                        break;
+                    case "left":
+                        if (personnage.PositionX > 2) personnage.PositionX -= 1;
+                        break;
+                    case "right":
+                        if (personnage.PositionX < 98) personnage.PositionX += 1;
+                        break;
+                    default:
+                        return BadRequest("Invalid direction. Use 'up', 'down', 'left', or 'right'.");
                 }
-                personnage.PositionX = newX;
-                personnage.PositionY = newY;
+
                 _context.Entry(personnage).State = EntityState.Modified;
                 try
                 {
@@ -85,7 +102,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PersonnageExists(id))
+                    if (!PersonnageExists(user.Id))
                     {
                         return NotFound();
                     }

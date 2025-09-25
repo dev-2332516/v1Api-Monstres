@@ -11,7 +11,7 @@ namespace ApiV1ControlleurMonstre.Models
         public string Password { get; set; }
         public DateTime DateInscription { get; set; }
         public bool IsConnected { get; set; }
-        public string Token { get; set; }
+        public string? Token { get; set; }
         public Utilisateur() { }
         public Utilisateur(int id, string email, string pseudo, string password)
         {

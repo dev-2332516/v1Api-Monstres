@@ -27,42 +27,44 @@ namespace ApiV1ControlleurMonstre.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<Utilisateur>> Register([FromBody] Utilisateur utilisateur)
+        public async Task<IActionResult> Register([FromBody] Utilisateur utilisateur)
         {
-            if (UtilisateurExist(utilisateur.Email))
+            if (await UtilisateurExist(utilisateur.Email))
                 return Conflict("EmailAlreadyExists");
 
             utilisateur.Password = Hashing.Compute(utilisateur.Password);
             utilisateur.DateInscription = DateTime.Now;
-            utilisateur.IsConnected = false;
+            utilisateur.IsConnected = true;
+            utilisateur.Token = GenerateJwtToken(utilisateur);
 
             _context.Utilisateurs.Add(utilisateur);
             await _context.SaveChangesAsync();
 
             // Créer un personnage par défaut lié à ce nouvel utilisateur
+            Random rand = new Random();
             var personnage = new Personnage
                 {
                     UtilisateurID = utilisateur.Id,
-                    Name = $"Hero_{utilisateur.Id}",
+                    Name = utilisateur.Pseudo,
                     Niveau = 1,
                     Experience = 0,
                     PointsVie = 100,           // valeur de départ, ajustable
                     PointsVieMax = 100,        // valeur maximale, ajustable
                     Force = 10,                // valeur de base, ajustable
                     Defense = 5,               // valeur de base, ajustable
-                    PositionX = 0,
-                    PositionY = 0,
+                    PositionX = rand.Next(2, 98), // Position aléatoire dans les limites valides
+                    PositionY = rand.Next(2, 98), // Position aléatoire dans les limites valides
                     DateCreation = DateTime.Now
                 };
 
             _context.Personnages.Add(personnage);
             await _context.SaveChangesAsync();
 
-            return utilisateur;
+            return Ok(new { token = utilisateur.Token });
         }
 
         [HttpPost("login/{email}/{password}")]
-        public async Task<ActionResult<string>> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password)
         {
             // Vérification de l'utilisateur
             var utilisateur = await _context.Utilisateurs
@@ -71,27 +73,33 @@ namespace ApiV1ControlleurMonstre.Controllers
             if (utilisateur == null)
                 return Unauthorized("InvalidEmailPassword");
 
-            var token = GenerateJwtToken(utilisateur);
-            utilisateur.Token = token;
-            return Ok(token);
-        }
-
-
-        [HttpPost("logout/{id}")]
-        public async Task<ActionResult> Logout(int id)
-        {
-            var utilisateur = await _context.Utilisateurs.FindAsync(id);
-            if (utilisateur == null) return NotFound("InvalidID");
-
-            utilisateur.IsConnected = false;
+            utilisateur.IsConnected = true;
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new {utilisateur.Token });
         }
 
-        private bool UtilisateurExist(string email)
+
+        [HttpPost("logout")]
+        public async Task<ActionResult> Logout()
         {
-            return _context.Utilisateurs.Any(u => u.Email == email);
+            Request.Headers.TryGetValue("userToken", out var token);
+            var utilisateur = await _context.Utilisateurs
+                .FirstOrDefaultAsync(u => u.Token == token.ToString());
+            
+            if (utilisateur == null) return NotFound("InvalidToken");
+
+            utilisateur.IsConnected = false;
+
+            await _context.SaveChangesAsync();
+            utilisateur = null;
+
+            return Ok("Déconnexion réussie");
+        }
+
+        private async Task<bool> UtilisateurExist(string email)
+        {
+            return await _context.Utilisateurs.AnyAsync(u => u.Email == email);
         }
 
         private string GenerateJwtToken(Utilisateur utilisateur)
