@@ -42,6 +42,31 @@ namespace ApiV1ControlleurMonstre.Controllers
 
             // Créer un personnage par défaut lié à ce nouvel utilisateur
             Random rand = new Random();
+            int posX, posY;
+            Tuile spawnTuile;
+
+            // Chercher une tuile traversable pour le spawn
+            do
+            {
+                posX = rand.Next(2, 98);
+                posY = rand.Next(2, 98);
+                spawnTuile = await _context.Tuiles.FindAsync(posX, posY);
+                
+                // Si la tuile n'existe pas, la créer
+                if (spawnTuile == null)
+                {
+                    var tuilesController = new TuilesController(_context);
+                    spawnTuile = GenTuile.GenerateTuile(posX, posY);
+                    
+                    // Ne sauvegarder la tuile que si elle est traversable
+                    if (spawnTuile.EstTraversable)
+                    {
+                        await _context.Tuiles.AddAsync(spawnTuile);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            } while (spawnTuile == null || !spawnTuile.EstTraversable);
+
             var personnage = new Personnage
                 {
                     UtilisateurID = utilisateur.Id,
@@ -52,8 +77,8 @@ namespace ApiV1ControlleurMonstre.Controllers
                     PointsVieMax = 100,        // valeur maximale, ajustable
                     Force = 10,                // valeur de base, ajustable
                     Defense = 5,               // valeur de base, ajustable
-                    PositionX = rand.Next(2, 98), // Position aléatoire dans les limites valides
-                    PositionY = rand.Next(2, 98), // Position aléatoire dans les limites valides
+                    PositionX = posX,          // Position sur une tuile traversable
+                    PositionY = posY,
                     DateCreation = DateTime.Now
                 };
 

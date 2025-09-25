@@ -41,28 +41,6 @@ namespace ApiV1ControlleurMonstre.Controllers
             else return Unauthorized("InvalidToken: Token is invalid or missing");
         }
 
-        [HttpPost("CreatePersonnage/{userId}/{name}")]
-        public async Task<ActionResult<Personnage>> CreatePersonnage(int userId, string name)
-        {
-            Random rand = new Random();
-            Personnage personnage = new Personnage
-            {
-                Name = name,
-                Niveau = 1,
-                Experience = 0,
-                PointsVie = 100,
-                PointsVieMax = 100,
-                Force = rand.Next(10, 21),
-                Defense = rand.Next(5, 16),
-                PositionX = rand.Next(2, 98),
-                PositionY = rand.Next(2, 98),
-                UtilisateurID = userId,
-                DateCreation = DateTime.Now
-            };
-            _context.Personnages.Add(personnage);
-            _context.SaveChanges();
-            return personnage;
-        }
 
         [HttpPut("MovePersonnage/{direction}")]
         public async Task<IActionResult> MovePersonnage(string direction)
@@ -77,23 +55,41 @@ namespace ApiV1ControlleurMonstre.Controllers
                     return NotFound();
                 }
 
+                int newX = personnage.PositionX;
+                int newY = personnage.PositionY;
+
                 switch (direction.ToLower())
                 {
                     case "up":
-                        if (personnage.PositionY < 98) personnage.PositionY += 1;
+                        if (personnage.PositionY < 98) newY = personnage.PositionY + 1;
                         break;
                     case "down":
-                        if (personnage.PositionY > 2) personnage.PositionY -= 1;
+                        if (personnage.PositionY > 2) newY = personnage.PositionY - 1;
                         break;
                     case "left":
-                        if (personnage.PositionX > 2) personnage.PositionX -= 1;
+                        if (personnage.PositionX > 2) newX = personnage.PositionX - 1;
                         break;
                     case "right":
-                        if (personnage.PositionX < 98) personnage.PositionX += 1;
+                        if (personnage.PositionX < 98) newX = personnage.PositionX + 1;
                         break;
                     default:
                         return BadRequest("Invalid direction. Use 'up', 'down', 'left', or 'right'.");
                 }
+
+                // Vérifier si la tuile de destination est traversable
+                var destinationTuile = await _context.Tuiles.FindAsync(newX, newY);
+                if (destinationTuile == null)
+                {
+                    return BadRequest("La tuile de destination n'existe pas");
+                }
+                if (!destinationTuile.EstTraversable)
+                {
+                    return BadRequest("Cette tuile n'est pas traversable");
+                }
+
+                // Si la tuile est traversable, mettre à jour la position
+                personnage.PositionX = newX;
+                personnage.PositionY = newY;
 
                 _context.Entry(personnage).State = EntityState.Modified;
                 try
