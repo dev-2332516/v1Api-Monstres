@@ -25,31 +25,32 @@ namespace ApiV1ControlleurMonstre.Controllers
             _context = context;
         }
 
-        // GET: api/Tuiles
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Tuile>>> GetTuiles()
-        {
-            return await _context.Tuiles.ToListAsync();
-        }
-
         // GET: api/GetOrCreateTuile/10/10
         [HttpGet("GetOrCreateTuile/{positionX}/{positionY}")]
         public async Task<ActionResult<Tuile>> GetOrCreateTuile(int positionX, int positionY)
         {
+            Request.Headers.TryGetValue("userToken", out StringValues token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
+            if (user == null) return Unauthorized("InvalidToken");
+
             var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
 
             if (tuile == null)
             {
-                await PostTuile(GenerateTuile(positionX, positionY));
+                await PostTuile(GenTuile.GenerateTuile(positionX, positionY));
                 tuile = await _context.Tuiles.FindAsync(positionX, positionY);
             }
                 return tuile;
         }
 
-        // GET: api/GetTuile/10/10
+        // GET: api/Tuiles/5/5
         [HttpGet("GetTuile/{positionX}/{positionY}")]
         public async Task<ActionResult<Tuile>> GetTuile(int positionX, int positionY)
         {
+            Request.Headers.TryGetValue("userToken", out StringValues token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
+            if (user == null) return Unauthorized("InvalidToken");
+
             var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
             if (tuile is null) return null;
             return tuile;
@@ -82,22 +83,22 @@ namespace ApiV1ControlleurMonstre.Controllers
                 {
                     case "up":
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
-                        if (tuile == null) await PostTuile(GenerateTuile(positionX + value, positionY - 1));
+                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX + value, positionY - 1));
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
                         break;
                     case "down":
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
-                        if (tuile == null) await PostTuile(GenerateTuile(positionX + value, positionY + 1));
+                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX + value, positionY + 1));
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
                         break;
                     case "left":
                         tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
-                        if (tuile == null) await PostTuile(GenerateTuile(positionX - 1, positionY + value));
+                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX - 1, positionY + value));
                         tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
                         break;
                     case "right":
                         tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
-                        if (tuile == null) await PostTuile(GenerateTuile(positionX + 1, positionY + value));
+                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX + 1, positionY + value));
                         tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
                         break;
                     default:
@@ -109,7 +110,7 @@ namespace ApiV1ControlleurMonstre.Controllers
             return tuilesArray;
         }
 
-        //GET: api/GetInitialTuiles
+        // GET: api/Tuiles/GetInitialTuiles
         [HttpGet("GetInitialTuiles")]
         public async Task<ActionResult<List<Tuile>>> GetInitialTuiles()
         {
@@ -132,44 +133,13 @@ namespace ApiV1ControlleurMonstre.Controllers
                     tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     if ((x >= -1 && x <= 1) && (y >= -1 && y <= 1) && tuile is null)
                     {
-                        await PostTuile(GenerateTuile(positionX + x, positionY + y));
+                        await PostTuile(GenTuile.GenerateTuile(positionX + x, positionY + y));
                         tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     }
                     tuilesArray.Add(tuile);
                 }
             }
             return tuilesArray;
-        }
-
-        // PUT: api/Tuiles/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTuile(int id, Tuile tuile)
-        {
-            if (id != tuile.PositionX)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(tuile).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TuileExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
         }
 
         // POST: api/Tuiles
@@ -194,14 +164,14 @@ namespace ApiV1ControlleurMonstre.Controllers
                 }
             }
 
-            return CreatedAtAction("GetTuile", new { id = tuile.PositionX }, tuile);
+            return CreatedAtAction(nameof(GetTuile), new { positionX = tuile.PositionX, positionY = tuile.PositionY }, tuile);
         }
 
         // DELETE: api/Tuiles/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTuile(int id)
+        [HttpDelete("{positionX}/{positionY}")]
+        public async Task<IActionResult> DeleteTuile(int positionX, int positionY)
         {
-            var tuile = await _context.Tuiles.FindAsync(id);
+            var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
             if (tuile == null)
             {
                 return NotFound();
@@ -213,43 +183,10 @@ namespace ApiV1ControlleurMonstre.Controllers
             return NoContent();
         }
 
-        private bool TuileExists(int id)
+        private bool TuileExists(int positionX)
         {
-            return _context.Tuiles.Any(e => e.PositionX == id);
+            return _context.Tuiles.Any(e => e.PositionX == positionX);
         }
-
-        private Tuile GenerateTuile(int positionX, int positionY)
-        {
-            Tuile tuile;
-            Random random = new Random();
-            int randomNumber = random.Next(1, 101);
-            TuileTypeEnum type;
-            string imageUrl;
-            if (randomNumber <= 20)
-            {
-                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Herbe, true, Tuile.stringImageUrl[TuileTypeEnum.Herbe]);
-            }
-            else if (randomNumber <= 30)
-            {
-                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Eau, false, Tuile.stringImageUrl[TuileTypeEnum.Eau]);
-            }
-            else if (randomNumber <= 45)
-            {
-                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Montagne, false, Tuile.stringImageUrl[TuileTypeEnum.Montagne]);
-            }
-            else if (randomNumber <= 60)
-            {
-                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Foret, true, Tuile.stringImageUrl[TuileTypeEnum.Foret]);
-            }
-            else if (randomNumber <= 65)
-            {
-                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Ville, true, Tuile.stringImageUrl[TuileTypeEnum.Ville]);
-            }
-            else
-            {
-                tuile = new Tuile(positionX, positionY, TuileTypeEnum.Route, true, Tuile.stringImageUrl[TuileTypeEnum.Route]);
-            }
-            return tuile;
-        }
+        
     }
 }
