@@ -18,8 +18,6 @@ document
   .getElementById("right-btn")
   .addEventListener("click", () => moveGrid("right"));
 
-
-
 createGrid();
 
 //displayDefaultTiles();
@@ -29,8 +27,12 @@ async function GetTile(x, y, td) {
     // Remove the inner text from TD
     td.innerHTML = "";
     console.log(`Fetching tile at (${x}, ${y})`);
+    let token = localStorage.getItem("jwtToken");
     const response = await fetch(
-      `https://localhost:7223/api/Tuiles/GetOrCreateTuile/${x}/${y}`
+      `https://localhost:7223/api/Tuiles/GetOrCreateTuile/${x}/${y}`,
+      {
+        headers: { "userToken": token },
+      }
     );
     const tile = await response.json();
     gameGrid[y - (posY - 2)][x - (posX - 2)] = tile; // Met à jour la tuile dans gameGrid
@@ -78,8 +80,14 @@ async function createGrid() {
 // mettre à jour les tuiles par défaut dans gameGrid et sans les afficher
 async function GetInitialTuiles() {
   try {
+    let token = localStorage.getItem("jwtToken");
     const response = await fetch(
-      `https://localhost:7223/api/Tuiles/GetInitialTuiles/${posX}/${posY}`
+      `https://localhost:7223/api/Tuiles/GetInitialTuiles/`, {
+        method: "GET",
+        headers: {
+           "userToken": token 
+          },
+      },
     );
     const initialTiles = await response.json();
     let count = 0;
@@ -209,7 +217,10 @@ function shiftGameGrid(direction) {
 // Get les nouvelles lignes selon la direction données
 async function getNewLines(direction) {
   const response = await fetch(
-    `https://localhost:7223/api/Tuiles/GetTuilesLine/${gameGrid[2][2].positionX}/${gameGrid[2][2].positionY}/${direction}`
+    `https://localhost:7223/api/Tuiles/GetTuilesLine/${gameGrid[2][2].positionX}/${gameGrid[2][2].positionY}/${direction}`,
+    {
+      headers: { "userToken": localStorage.getItem("jwtToken") },
+    }
   );
   const newTiles = await response.json();
   switch (direction) {
