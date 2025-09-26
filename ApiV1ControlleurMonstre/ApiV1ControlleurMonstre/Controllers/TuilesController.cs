@@ -126,9 +126,9 @@ namespace ApiV1ControlleurMonstre.Controllers
             Tuile tuile = null;
 
             // Prend toutes les tuiles dans la map
-            for (int x = -2; x <= 2; x++)
+            for (int x = -1; x <= 1; x++)
             {
-                for (int y = -2; y <= 2; y++)
+                for (int y = -1; y <= 1; y++)
                 {
                     tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     if ((x >= -1 && x <= 1) && (y >= -1 && y <= 1) && tuile is null)

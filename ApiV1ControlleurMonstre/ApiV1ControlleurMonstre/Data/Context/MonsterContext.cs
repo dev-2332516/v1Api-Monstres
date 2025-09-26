@@ -9,15 +9,17 @@ namespace ApiV1ControlleurMonstre.Data.Context
         public DbSet<Tuile> Tuiles { get; set; }
         public DbSet<Utilisateur> Utilisateurs { get; set; }
         public DbSet<Personnage> Personnages { get; set; }
+        public DbSet<InstanceMonstre> InstanceMonstres { get; set; }
+
 
         public MonsterContext(DbContextOptions<MonsterContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Utilisateur>().ToTable("utilisateur");
-            modelBuilder.Entity<Tuile>()
-                .HasKey(t => new { t.PositionX, t.PositionY });
-
+            modelBuilder.Entity<Tuile>().HasKey(t => new { t.PositionX, t.PositionY });
+            modelBuilder.Entity<InstanceMonstre>().HasOne<Monstre>().WithMany().HasForeignKey(m=>m.MonstreId).OnDelete(DeleteBehavior.Restrict);
+   
             base.OnModelCreating(modelBuilder);
         }
     }

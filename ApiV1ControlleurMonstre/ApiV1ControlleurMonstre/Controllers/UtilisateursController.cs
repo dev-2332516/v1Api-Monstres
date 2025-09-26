@@ -48,8 +48,8 @@ namespace ApiV1ControlleurMonstre.Controllers
             // Chercher une tuile traversable pour le spawn
             do
             {
-                posX = rand.Next(2, 98);
-                posY = rand.Next(2, 98);
+                posX = rand.Next(2, 48);
+                posY = rand.Next(2, 48);
                 spawnTuile = await _context.Tuiles.FindAsync(posX, posY);
                 
                 // Si la tuile n'existe pas, la créer

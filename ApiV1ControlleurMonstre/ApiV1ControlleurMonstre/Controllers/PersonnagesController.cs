@@ -107,7 +107,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                         throw;
                     }
                 }
-                return NoContent();
+                return Ok();
             }
             else return Unauthorized("InvalidToken: Token is invalid or missing");
         }
