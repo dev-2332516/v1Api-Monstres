@@ -17,24 +17,40 @@ document
 document
   .getElementById("right-btn")
   .addEventListener("click", () => moveGrid("right"));
-
+setPersonnage();
 createGrid();
 
 //displayDefaultTiles();
+
+async function callAPI(route, method) {
+  let token = JSON.parse(localStorage.getItem("jwtToken"));
+  const response = await fetch(
+    `https://localhost:7223/api/${route}`,
+    {
+      method: method,
+      headers: { "userToken": token.token },
+    }
+  );
+  return result = await response.json();
+}
+
+async function setPersonnage(){
+  const personnage = await await callAPI(`Personnages/GetPersonnageFromUser/`, "GET")
+  posX = personnage["positionX"];
+  posY = personnage["positionY"];
+  document.getElementById("stat-hp").innerHTML = personnage["pointsVie"] + "/" + personnage["pointsVieMax"];
+  document.getElementById("stat-level").innerHTML = personnage["niveau"];
+  document.getElementById("stat-xp").innerHTML = personnage["experience"];
+  document.getElementById("stat-str").innerHTML = personnage["force"];
+  document.getElementById("stat-def").innerHTML = personnage["defense"];
+}
 
 async function GetTile(x, y, td) {
   try {
     // Remove the inner text from TD
     td.innerHTML = "";
     console.log(`Fetching tile at (${x}, ${y})`);
-    let token = localStorage.getItem("jwtToken");
-    const response = await fetch(
-      `https://localhost:7223/api/Tuiles/GetOrCreateTuile/${x}/${y}`,
-      {
-        headers: { "userToken": token },
-      }
-    );
-    const tile = await response.json();
+    const tile = await callAPI(`Tuiles/GetOrCreateTuile/${x}/${y}`, "GET");
     gameGrid[y - (posY - 2)][x - (posX - 2)] = tile; // Met à jour la tuile dans gameGrid
     td.style.cssText = `
     background-image: url(img/${tile.imageURL})
@@ -53,6 +69,9 @@ function showCoordinates(c, r) {
 
 // Crée la grille de jeu 5x5 et mettre les tuiles aux bonnes positions dans gameGrid sans afficher
 async function createGrid() {
+  const personnage = await await callAPI(`Personnages/GetPersonnageFromUser/`, "GET")
+  posX = personnage["positionX"];
+  posY = personnage["positionY"];
   gameContainer.innerHTML = "";
   const table = document.createElement("table");
   table.id = "table";
@@ -80,16 +99,7 @@ async function createGrid() {
 // mettre à jour les tuiles par défaut dans gameGrid et sans les afficher
 async function GetInitialTuiles() {
   try {
-    let token = localStorage.getItem("jwtToken");
-    const response = await fetch(
-      `https://localhost:7223/api/Tuiles/GetInitialTuiles/`, {
-        method: "GET",
-        headers: {
-           "userToken": token 
-          },
-      },
-    );
-    const initialTiles = await response.json();
+    const initialTiles = await callAPI("Tuiles/GetInitialTuiles", "GET");
     let count = 0;
     for (let y = 0; y <= 4; y++) {
       for (let x = 0; x <= 4; x++) {
@@ -125,19 +135,37 @@ async function displayGameGrid() {
 // Bouge la grid selon la direction donnée
 async function moveGrid(direction) {
   try {
-    if (direction == "up") posY--;
-    if (direction == "down") posY++;
-    if (direction == "left") posX--;
-    if (direction == "right") posX++;
     // Movement réel
-    await shiftTable(direction);
-    await shiftGameGrid(direction);
-    await getNewLines(direction);
-    await displayGameGrid();
+    if (await movePersonnage(direction)) {
+      if (direction == "up") posY--;
+      if (direction == "down") posY++;
+      if (direction == "left") posX--;
+      if (direction == "right") posX++;
+      await shiftTable(direction);
+      await shiftGameGrid(direction);
+      await getNewLines(direction);
+      await displayGameGrid();
+    }
   } catch (error) {
     console.error("Error moving grid:", error);
     showErrorPopup("Failed to move grid");
   }
+}
+
+async function movePersonnage(direction) {
+  const response = await fetch(
+    `https://localhost:7223/api/Personnages/MovePersonnage/${direction}`,
+    {
+      method: "PUT",
+      headers: {
+        userToken: JSON.parse(localStorage.getItem("jwtToken")).token,
+      },
+    }
+  );
+  if ((await response.status) != 200) {
+    return false;
+  }
+  return true;
 }
 
 // Shift les IDs de la table avec la direction donnee
@@ -216,33 +244,27 @@ function shiftGameGrid(direction) {
 
 // Get les nouvelles lignes selon la direction données
 async function getNewLines(direction) {
-  const response = await fetch(
-    `https://localhost:7223/api/Tuiles/GetTuilesLine/${gameGrid[2][2].positionX}/${gameGrid[2][2].positionY}/${direction}`,
-    {
-      headers: { "userToken": localStorage.getItem("jwtToken") },
-    }
-  );
-  const newTiles = await response.json();
+  const newTiles = await callAPI(`Tuiles/GetTuilesLine/${direction}`, "GET");
   switch (direction) {
     case "up":
-      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[2];
+      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[0];
       if (gameGrid[1][2] == null) gameGrid[1][2] = newTiles[1];
-      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[0];
+      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[2];
       break;
     case "down":
-      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[2];
+      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[0];
       if (gameGrid[3][2] == null) gameGrid[3][2] = newTiles[1];
-      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[0];
+      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[2];
       break;
     case "left":
-      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[2];
+      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[0];
       if (gameGrid[2][1] == null) gameGrid[2][1] = newTiles[1];
-      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[0];
+      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[2];
       break;
     case "right":
-      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[2];
+      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[0];
       if (gameGrid[2][3] == null) gameGrid[2][3] = newTiles[1];
-      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[0];
+      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[2];
       break;
   }
 }
