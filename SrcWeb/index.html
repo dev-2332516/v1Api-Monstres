@@ -1,113 +1,189 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>RPG</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css" />
     <script src="js/script.js" defer></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <button id="logout-btn">Déconnexion</button>
-    
+
     <div class="container">
-        <h1>RPG Explorer</h1>
+      <h1>RPG Explorer</h1>
     </div>
 
     <div id="game-container" class="game-container">
-        <div id="settings">
-            <div class="container settings-tuile">
-                <p class="title">Information</p>
-                <hr>
-                <p>Taille du monde: 50x50</p>
-                <p>Zone affichée: 5x5</p>
-                <p>Status API: Connecté</p>
-                <p>Tuiles chargées: 0</p>
-            </div>
-            <div class="container settings-tuile">
-                <p class="title">Navigation</p>
-                <hr>
-                <div class="controls">
-                    <button id="up-btn">↑ Haut</button>
-                    <div class="horizontal-controls">
-                        <button id="left-btn">← Gauche</button>
-                        <button id="right-btn">Droite →</button>
-                    </div>
-                    <button id="down-btn">↓ Bas</button>
-                </div>
-            </div>
-            <div class="container settings-tuile">
-                <p class="title">Légende</p>
-                <hr>
-                <div class="legend-item">
-                    <div class="legend-color default-tile"></div>
-                    <p>Tuile standard</p>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color loaded-tile"></div>
-                    <p>Tuile chargée</p>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color selected-tile"></div>
-                    <p>Tuile sélectionnée</p>
-                </div>
-            </div>
-            <div class="container settings-tuile">
-                <p class="title">Tuile sélectionnée</p>
-                <hr>
-                <div class="coord-display">
-                    <p>Coordonnées (x, y):</p>
-                    <p id="coord">-</p>
-                </div>
-            </div>
+      <div id="settings">
+        <div class="container settings-tuile">
+          <p class="title">Information</p>
+          <hr />
+          <p>Taille du monde: 50x50</p>
+          <p>Zone affichée: 5x5</p>
+          <p>Status API: Connecté</p>
+          <p>Tuiles chargées: 0</p>
         </div>
-        
-        <div id="map" class="container">
-            <div class="map">
-                <div id="grid-container" class="map-container"></div>
+        <div class="container settings-tuile">
+          <p class="title">Navigation</p>
+          <hr />
+          <div class="controls">
+            <button id="up-btn">↑ Haut</button>
+            <div class="horizontal-controls">
+              <button id="left-btn">← Gauche</button>
+              <button id="right-btn">Droite →</button>
             </div>
+            <button id="down-btn">↓ Bas</button>
+          </div>
         </div>
+        <div class="container settings-tuile">
+          <p class="title">Légende</p>
+          <hr />
+          <div class="legend-item">
+            <div class="legend-color default-tile"></div>
+            <p>Tuile standard</p>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color loaded-tile"></div>
+            <p>Tuile chargée</p>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color selected-tile"></div>
+            <p>Tuile sélectionnée</p>
+          </div>
+        </div>
+        <div class="container settings-tuile">
+          <p class="title">Tuile sélectionnée</p>
+          <hr />
+          <div class="coord-display">
+            <p>Coordonnées (x, y):</p>
+            <p id="coord-sel">-</p>
+          </div>
+          <div class="coord-display">
+            <p>Type de tuile:</p>
+            <p id="tuile-type"></p>
+          </div>
+          <div class="coord-display">
+            <p>Est traversable:</p>
+            <p id="is-traversable"></p>
+          </div>
+          <div class="coord-display">
+            <p id="coord"></p>
+          </div>
+        </div>
+      </div>
 
+      <div id="map" class="container">
+        <div class="map">
+          <div id="grid-container" class="map-container"></div>
+        </div>
+      </div>
+      <div class="d-grid">
         <div id="player-stats" class="container settings-tuile">
-        <p class="title">Statistiques Joueur</p>
-        <hr>
-        <p>PV : <span id="stat-hp">0/0</span></p>
-        <p>Niveau : <span id="stat-level">0</span></p>
-        <p>XP : <span id="stat-xp">0</span></p>
-        <p>Force : <span id="stat-str">0</span></p>
-        <p>Défense : <span id="stat-def">0</span></p>
-
-    </div>
+          <p class="title">Statistiques Joueur</p>
+          <hr />
+          <p>PV : <span id="stat-hp">0/0</span></p>
+          <p>Niveau : <span id="stat-level">0</span></p>
+          <p>XP : <span id="stat-xp">0</span></p>
+          <p>Force : <span id="stat-str">0</span></p>
+          <p>Défense : <span id="stat-def">0</span></p>
+        </div>
+        <div class="container settings-tuile">
+          <p class="title">Monstre sélectionnée</p>
+          <hr />
+          <div class="coord-display">
+            <p>Nom: </p>
+            <p id="monstre-nom"></p>
+          </div>
+          <div class="coord-display">
+            <p>PV:</p>
+            <p id="monstre-pv"></p>
+          </div>
+          <div class="coord-display">
+            <p>Force</p>
+            <p id="monstre-force"></p>
+          </div>
+          <div class="coord-display">
+            <p>Defense:</p>
+            <p id="monstre-defense"></p>
+          </div>
+          <div class="coord-display">
+            <p>XP</p>
+            <p id="monstre-xp"></p>
+          </div>
+          <div class="coord-display">
+            <p>Type #1:</p>
+            <p id="monstre-type1"></p>
+          </div>
+          <div class="coord-display" id="type-2">
+            <p>Type #2: </p>
+            <p id="monstre-type2"></p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="auth-container">
-        <div class="auth-box" id="login-box">
-            <h2>Connexion</h2>
-            <form id="login-form">
-                <label for="email-login">Email</label>
-                <input type="email" id="email-login" name="email" placeholder="exemple@mail.com" required />
-                <label for="password-login">Mot de passe</label>
-                <input type="password" id="password-login" name="password" placeholder="Votre mot de passe" required />
-                <button type="submit">Se connecter</button>
-            </form>
-            <p id="login-message"></p>
-            <p class="switch-auth" id="show-register">Pas encore inscrit ? Créez un compte</p>
-        </div>
+      <div class="auth-box" id="login-box">
+        <h2>Connexion</h2>
+        <form id="login-form">
+          <label for="email-login">Email</label>
+          <input
+            type="email"
+            id="email-login"
+            name="email"
+            placeholder="exemple@mail.com"
+            required
+          />
+          <label for="password-login">Mot de passe</label>
+          <input
+            type="password"
+            id="password-login"
+            name="password"
+            placeholder="Votre mot de passe"
+            required
+          />
+          <button type="submit">Se connecter</button>
+        </form>
+        <p id="login-message"></p>
+        <p class="switch-auth" id="show-register">
+          Pas encore inscrit ? Créez un compte
+        </p>
+      </div>
 
-        <div class="auth-box" id="register-box" style="display:none;">
-            <h2>Inscription</h2>
-            <form id="register-form">
-                <label for="email-register">Email</label>
-                <input type="email" id="email-register" name="email" placeholder="exemple@mail.com" required />
-                <label for="pseudo-register">Pseudo</label>
-                <input type="text" id="pseudo-register" name="pseudo" placeholder="Votre pseudo" required />
-                <label for="password-register">Mot de passe</label>
-                <input type="password" id="password-register" name="password" placeholder="Votre mot de passe" required />
-                <button type="submit">S'inscrire</button>
-            </form>
-            <p id="register-message"></p>
-            <p class="switch-auth" id="show-login">Déjà un compte ? Connectez-vous</p>
-        </div>
+      <div class="auth-box" id="register-box" style="display: none">
+        <h2>Inscription</h2>
+        <form id="register-form">
+          <label for="email-register">Email</label>
+          <input
+            type="email"
+            id="email-register"
+            name="email"
+            placeholder="exemple@mail.com"
+            required
+          />
+          <label for="pseudo-register">Pseudo</label>
+          <input
+            type="text"
+            id="pseudo-register"
+            name="pseudo"
+            placeholder="Votre pseudo"
+            required
+          />
+          <label for="password-register">Mot de passe</label>
+          <input
+            type="password"
+            id="password-register"
+            name="password"
+            placeholder="Votre mot de passe"
+            required
+          />
+          <button type="submit">S'inscrire</button>
+        </form>
+        <p id="register-message"></p>
+        <p class="switch-auth" id="show-login">
+          Déjà un compte ? Connectez-vous
+        </p>
+      </div>
     </div>
-
-</body>
+  </body>
 </html>

@@ -183,6 +183,13 @@ namespace ApiV1ControlleurMonstre.Controllers
             return NoContent();
         }
 
+        [HttpGet("GetTuileType/{type}")]
+        public ActionResult<string> GetTuileType(int type)
+        {
+            string value = Enum.GetName(typeof(TuileTypeEnum), type);
+            return value;
+        }
+
         private bool TuileExists(int positionX)
         {
             return _context.Tuiles.Any(e => e.PositionX == positionX);

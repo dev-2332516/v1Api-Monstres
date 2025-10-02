@@ -22,13 +22,15 @@ createGrid();
 
 //displayDefaultTiles();
 
-async function callAPI(route, method) {
+async function callAPI(route, method, responseType) {
   let token = JSON.parse(localStorage.getItem("jwtToken"));
-  const response = await fetch(`https://localhost:7223/api/${route}`, {
+  let response = await fetch(`https://localhost:7223/api/${route}`, {
     method: method,
     headers: { userToken: token.token },
   });
-  return (result = await response.json());
+  if (responseType == "text") return (result = await response.text());
+  if (responseType == "json" || !responseType)
+    return (result = await response.json());
 }
 
 async function setPersonnage() {
@@ -53,6 +55,10 @@ async function GetTile(x, y, td) {
     td.style.cssText = `
     background-image: url(img/${tile.imageURL})
   `;
+    td.removeEventListener("click", () =>
+      GetTile(posX - 2 + c, posY - 2 + r, td)
+    );
+    td.addEventListener("click", () => getInfoTile(x, y));
   } catch (error) {
     console.error("Erreur API : ", error);
   }
@@ -103,7 +109,10 @@ async function GetInitialTuiles() {
       Array.from(tr.children).forEach((td, indexTd) => {
         let xToGet = td.id.split("; ")[0];
         let yToGet = td.id.split("; ")[1];
-        let tile = initialTiles.find(matchTile => matchTile.positionX == xToGet && matchTile.positionY == yToGet);
+        let tile = initialTiles.find(
+          (matchTile) =>
+            matchTile.positionX == xToGet && matchTile.positionY == yToGet
+        );
         if (tile) {
           gameGrid[indexTr][indexTd] = tile;
         }
@@ -130,7 +139,14 @@ async function displayGameGrid() {
       if (tile) {
         const td = document.getElementById(`${posX + x}; ${posY + y}`);
         if (td) {
+          td.innerHTML = "";
           td.style.cssText = `background-image: url(img/${tile.imageURL})`;
+          td.removeEventListener("click", () =>
+            GetTile(posX - 2 + c, posY - 2 + r, td)
+          );
+          td.addEventListener("click", () =>
+            getInfoTile(td.id.split("; ")[0], td.id.split("; ")[1])
+          );
         }
       } else {
         const td = document.getElementById(`${posX + x}; ${posY + y}`);
@@ -438,3 +454,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+function getTileWithCoords(x, y) {
+  let tempTile = null;
+  for (let i = 0; i < gameGrid.length; i++) {
+    const line = gameGrid[i];
+    for (let j = 0; j < line.length; j++) {
+      const tile = line[j];
+      if (tile && tile.positionX == x && tile.positionY == y) {
+        tempTile = tile;
+        return tempTile;
+      }
+    }
+  }
+}
+
+async function getInfoTile(x, y) {
+  let tempTile = await getTileWithCoords(x, y);
+  document.getElementById("coord-sel").innerHTML =
+    tempTile["positionX"] + "," + tempTile["positionY"];
+  const type = await callAPI(
+    `Tuiles/GetTuileType/${tempTile["type"]}`,
+    "GET",
+    "text"
+  );
+  document.getElementById("tuile-type").innerHTML = type;
+  document.getElementById("is-traversable").innerHTML =
+    tempTile["estTraversable"];
+}
