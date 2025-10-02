@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiV1ControlleurMonstre.Models
 {
@@ -7,7 +8,9 @@ namespace ApiV1ControlleurMonstre.Models
     {
         public int PositionX { get; set; }
         public int PositionY { get; set; }
+        [ForeignKey(nameof(MonstreId))]
         public int MonstreId { get; set; }
+        public virtual Monstre Monstre { get; set; }  // Navigation property
         public int Niveau { get; set; }
         public int PointsVieMax { get; set; }
         public int PointsVieActuels { get; set; }

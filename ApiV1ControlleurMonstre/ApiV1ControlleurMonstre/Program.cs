@@ -22,7 +22,7 @@ namespace ApiV1ControlleurMonstre
             var jwtSettings = jwtSection.Get<JwtSettings>();
             var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 
-            // 2. Configurer l’authentification JWT
+            // 2. Configurer lï¿½authentification JWT
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

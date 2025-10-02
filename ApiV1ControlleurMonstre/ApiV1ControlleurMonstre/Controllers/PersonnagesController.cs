@@ -64,10 +64,10 @@ namespace ApiV1ControlleurMonstre.Controllers
                         if (personnage.PositionY < 49) newY = personnage.PositionY - 1;
                         break;
                     case "down":
-                        if (personnage.PositionY > 2) newY = personnage.PositionY + 1;
+                        if (personnage.PositionY > 1) newY = personnage.PositionY + 1;
                         break;
                     case "left":
-                        if (personnage.PositionX > 2) newX = personnage.PositionX - 1;
+                        if (personnage.PositionX > 1) newX = personnage.PositionX - 1;
                         break;
                     case "right":
                         if (personnage.PositionX < 49) newX = personnage.PositionX + 1;
@@ -82,14 +82,99 @@ namespace ApiV1ControlleurMonstre.Controllers
                 {
                     return BadRequest("La tuile de destination n'existe pas");
                 }
-                if (!destinationTuile.EstTraversable)
+
+                // Vérifier s'il y a un monstre sur la tuile
+                var monstre = await _context.InstanceMonstres
+                    .Include(m => m.Monstre)
+                    .FirstOrDefaultAsync(m => m.PositionX == newX && m.PositionY == newY);
+
+                if (monstre != null)
+                {
+                    // Combat !
+                    double facteurAleatoire = new Random().NextDouble() * (1.25 - 0.8) + 0.8;
+                    
+                    // Calcul des dégâts avec un minimum de 1
+                    int degatsAuMonstre = Math.Max(1, (int)((personnage.Force - (monstre.Monstre.DefenseBase + monstre.Niveau)) * facteurAleatoire));
+                    int degatsAuJoueur = Math.Max(1, (int)((monstre.Monstre.ForceBase + monstre.Niveau - personnage.Defense) * facteurAleatoire));
+
+                    // Application des dégâts
+                    monstre.PointsVieActuels -= degatsAuMonstre;
+                    personnage.PointsVie -= degatsAuJoueur;
+                    
+                    // Sauvegarder les changements même en cas de combat indécis
+                    await _context.SaveChangesAsync();
+
+                    if (monstre.PointsVieActuels <= 0)
+                    {
+                        // Victoire du joueur
+                        // Gain d'expérience
+                        int xpGagnee = monstre.Monstre.ExperienceBase + (monstre.Niveau * 10);
+                        personnage.Experience += xpGagnee;
+
+                        // Vérification du niveau
+                        while (personnage.Experience >= 100)
+                        {
+                            personnage.Experience -= 100;
+                            personnage.Niveau++;
+                            personnage.Force++;
+                            personnage.Defense++;
+                            personnage.PointsVieMax++;
+                            personnage.PointsVie = personnage.PointsVieMax;
+                        }
+
+                        // Supprimer le monstre
+                        _context.InstanceMonstres.Remove(monstre);
+
+                        // Déplacer le joueur si la tuile est traversable
+                        if (destinationTuile.EstTraversable)
+                        {
+                            personnage.PositionX = newX;
+                            personnage.PositionY = newY;
+                        }
+                    }
+                    else if (personnage.PointsVie <= 0)
+                    {
+                        // Défaite du joueur
+                        // Trouver une ville proche pour la téléportation
+                        var villeProche = await _context.Tuiles
+                            .Where(t => t.Type == TuileTypeEnum.Ville)
+                            .OrderBy(t => Math.Pow(t.PositionX - personnage.PositionX, 2) + 
+                                        Math.Pow(t.PositionY - personnage.PositionY, 2))
+                            .FirstOrDefaultAsync();
+
+                        if (villeProche != null)
+                        {
+                            personnage.PositionX = villeProche.PositionX;
+                            personnage.PositionY = villeProche.PositionY;
+                        }
+                        
+                        // Restaurer les points de vie
+                        personnage.PointsVie = personnage.PointsVieMax;
+                        
+                        return Ok(new { message = "Vous avez été vaincu et téléporté à la ville la plus proche!" });
+                    }
+                    else
+                    {
+                        // Combat indécis
+                        return Ok(new { 
+                            message = "Combat ! ",
+                            degatsInfliges = degatsAuMonstre,
+                            degatsRecus = degatsAuJoueur,
+                            ptsVieJoueur = personnage.PointsVie,
+                            ptsVieMonstre = monstre.PointsVieActuels
+                        });
+                    }
+                }
+                else if (!destinationTuile.EstTraversable)
                 {
                     return BadRequest("Cette tuile n'est pas traversable");
                 }
-
-                // Si la tuile est traversable, mettre à jour la position
-                personnage.PositionX = newX;
-                personnage.PositionY = newY;
+                else
+                {
+                    // Déplacement normal sans combat
+                    personnage.PositionX = newX;
+                    personnage.PositionY = newY;
+                }
 
                 _context.Entry(personnage).State = EntityState.Modified;
                 try

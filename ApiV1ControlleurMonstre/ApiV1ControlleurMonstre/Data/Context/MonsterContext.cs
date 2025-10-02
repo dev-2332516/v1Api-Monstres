@@ -18,7 +18,11 @@ namespace ApiV1ControlleurMonstre.Data.Context
         {
             modelBuilder.Entity<Utilisateur>().ToTable("utilisateur");
             modelBuilder.Entity<Tuile>().HasKey(t => new { t.PositionX, t.PositionY });
-            modelBuilder.Entity<InstanceMonstre>().HasOne<Monstre>().WithMany().HasForeignKey(m=>m.MonstreId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<InstanceMonstre>()
+                .HasOne(im => im.Monstre)
+                .WithMany()
+                .HasForeignKey(im => im.MonstreId)
+                .OnDelete(DeleteBehavior.Restrict);
    
             base.OnModelCreating(modelBuilder);
         }

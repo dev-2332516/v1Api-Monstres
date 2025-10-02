@@ -71,12 +71,12 @@ namespace ApiV1ControlleurMonstre.Controllers
                 {
                     UtilisateurID = utilisateur.Id,
                     Name = utilisateur.Pseudo,
-                    Niveau = 1,
+                    Niveau = 999,
                     Experience = 0,
-                    PointsVie = 100,           // valeur de départ, ajustable
-                    PointsVieMax = 100,        // valeur maximale, ajustable
-                    Force = 10,                // valeur de base, ajustable
-                    Defense = 5,               // valeur de base, ajustable
+                    PointsVie = 999,           // valeur de départ, ajustable
+                    PointsVieMax = 999,        // valeur maximale, ajustable
+                    Force = 999,                // valeur de base, ajustable
+                    Defense = 999,               // valeur de base, ajustable
                     PositionX = posX,          // Position sur une tuile traversable
                     PositionY = posY,
                     DateCreation = DateTime.Now

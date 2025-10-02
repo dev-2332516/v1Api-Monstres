@@ -1,4 +1,5 @@
 ﻿using ApiV1ControlleurMonstre.Data.Context;
+using ApiV1ControlleurMonstre.DTOs;
 using ApiV1ControlleurMonstre.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -45,7 +46,7 @@ namespace ApiV1ControlleurMonstre.Controllers
 
         // GET: api/Tuiles/5/5
         [HttpGet("GetTuile/{positionX}/{positionY}")]
-        public async Task<ActionResult<Tuile>> GetTuile(int positionX, int positionY)
+        public async Task<ActionResult<TuileAvecInfosDto>> GetTuile(int positionX, int positionY)
         {
             Request.Headers.TryGetValue("userToken", out StringValues token);
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
@@ -53,7 +54,12 @@ namespace ApiV1ControlleurMonstre.Controllers
 
             var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
             if (tuile is null) return null;
-            return tuile;
+
+            var monstre = await _context.InstanceMonstres
+                .Include(im => im.Monstre)
+                .FirstOrDefaultAsync(m => m.PositionX == positionX && m.PositionY == positionY);
+
+            return TuileAvecInfosDto.FromModel(tuile, monstre);
         }
 
         // GET: api/Tuiles/10/10
