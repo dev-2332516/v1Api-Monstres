@@ -61,10 +61,10 @@ namespace ApiV1ControlleurMonstre.Controllers
                 switch (direction.ToLower())
                 {
                     case "up":
-                        if (personnage.PositionY < 98) newY = personnage.PositionY + 1;
+                        if (personnage.PositionY < 98) newY = personnage.PositionY - 1;
                         break;
                     case "down":
-                        if (personnage.PositionY > 2) newY = personnage.PositionY - 1;
+                        if (personnage.PositionY > 2) newY = personnage.PositionY + 1;
                         break;
                     case "left":
                         if (personnage.PositionX > 2) newX = personnage.PositionX - 1;

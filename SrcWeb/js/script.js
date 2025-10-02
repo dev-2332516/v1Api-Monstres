@@ -24,21 +24,19 @@ createGrid();
 
 async function callAPI(route, method) {
   let token = JSON.parse(localStorage.getItem("jwtToken"));
-  const response = await fetch(
-    `https://localhost:7223/api/${route}`,
-    {
-      method: method,
-      headers: { "userToken": token.token },
-    }
-  );
-  return result = await response.json();
+  const response = await fetch(`https://localhost:7223/api/${route}`, {
+    method: method,
+    headers: { userToken: token.token },
+  });
+  return (result = await response.json());
 }
 
-async function setPersonnage(){
-  const personnage = await await callAPI(`Personnages/GetPersonnageFromUser/`, "GET")
+async function setPersonnage() {
+  const personnage = await callAPI(`Personnages/GetPersonnageFromUser/`, "GET");
   posX = personnage["positionX"];
   posY = personnage["positionY"];
-  document.getElementById("stat-hp").innerHTML = personnage["pointsVie"] + "/" + personnage["pointsVieMax"];
+  document.getElementById("stat-hp").innerHTML =
+    personnage["pointsVie"] + "/" + personnage["pointsVieMax"];
   document.getElementById("stat-level").innerHTML = personnage["niveau"];
   document.getElementById("stat-xp").innerHTML = personnage["experience"];
   document.getElementById("stat-str").innerHTML = personnage["force"];
@@ -69,7 +67,7 @@ function showCoordinates(c, r) {
 
 // Crée la grille de jeu 5x5 et mettre les tuiles aux bonnes positions dans gameGrid sans afficher
 async function createGrid() {
-  const personnage = await await callAPI(`Personnages/GetPersonnageFromUser/`, "GET")
+  const personnage = await callAPI(`Personnages/GetPersonnageFromUser/`, "GET");
   posX = personnage["positionX"];
   posY = personnage["positionY"];
   gameContainer.innerHTML = "";
@@ -101,12 +99,22 @@ async function GetInitialTuiles() {
   try {
     const initialTiles = await callAPI("Tuiles/GetInitialTuiles", "GET");
     let count = 0;
-    for (let y = 0; y <= 4; y++) {
-      for (let x = 0; x <= 4; x++) {
-        gameGrid[x][y] = initialTiles[count];
-        count++;
-      }
-    }
+    Array.from(table.children).forEach((tr, indexTr) => {
+      Array.from(tr.children).forEach((td, indexTd) => {
+        let xToGet = td.id.split("; ")[0];
+        let yToGet = td.id.split("; ")[1];
+        let tile = initialTiles.find(matchTile => matchTile.positionX == xToGet && matchTile.positionY == yToGet);
+        if (tile) {
+          gameGrid[indexTr][indexTd] = tile;
+        }
+      });
+    });
+    // for (let x = 1; x <= 3; x++) {
+    //   for (let y = 1; y <= 3; y++) {
+    //     gameGrid[y][x] = initialTiles[count];
+    //     count++;
+    //   }
+    // }
   } catch (error) {
     console.error("Erreur API : ", error);
   }
