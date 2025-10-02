@@ -1,9 +1,10 @@
 
 using ApiV1ControlleurMonstre.Data.Context;
 using ApiV1ControlleurMonstre.Models;
+using ApiV1ControlleurMonstre.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Configuration;
 using System.Text;
 
@@ -43,6 +44,8 @@ namespace ApiV1ControlleurMonstre
                     ClockSkew = TimeSpan.Zero
                 };
             });
+
+            builder.Services.AddHostedService<MonstreMaintenanceService>();
 
             // 3. Autres services
             builder.Services.AddCors(opt =>
