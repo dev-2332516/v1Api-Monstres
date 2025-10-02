@@ -75,8 +75,8 @@ namespace ApiV1ControlleurMonstre.Services
             // Essayer jusqu'à 10 fois de trouver une tuile valide
             for (int attempt = 0; attempt < 10; attempt++)
             {
-                int x = random.Next(2, 98);
-                int y = random.Next(2, 98);
+                int x = random.Next(0, 50);
+                int y = random.Next(0, 50);
 
                 var tile = await context.Tuiles.FindAsync(new object[] { x, y }, cancellationToken);
                 
