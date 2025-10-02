@@ -61,7 +61,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                 switch (direction.ToLower())
                 {
                     case "up":
-                        if (personnage.PositionY < 98) newY = personnage.PositionY - 1;
+                        if (personnage.PositionY < 49) newY = personnage.PositionY - 1;
                         break;
                     case "down":
                         if (personnage.PositionY > 2) newY = personnage.PositionY + 1;
@@ -70,7 +70,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                         if (personnage.PositionX > 2) newX = personnage.PositionX - 1;
                         break;
                     case "right":
-                        if (personnage.PositionX < 98) newX = personnage.PositionX + 1;
+                        if (personnage.PositionX < 49) newX = personnage.PositionX + 1;
                         break;
                     default:
                         return BadRequest("Invalid direction. Use 'up', 'down', 'left', or 'right'.");
