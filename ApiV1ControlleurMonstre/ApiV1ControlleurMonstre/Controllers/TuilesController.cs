@@ -35,6 +35,9 @@ namespace ApiV1ControlleurMonstre.Controllers
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
             if (user == null) return Unauthorized("InvalidToken");
 
+            if (positionX < 0 || positionX > 50 || positionY < 0 || positionY > 50)
+                return BadRequest("OutOfBounds: Position is out of map bounds (0-50)");
+
             var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
 
             if (tuile == null)
@@ -58,6 +61,9 @@ namespace ApiV1ControlleurMonstre.Controllers
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
             if (user == null) return Unauthorized("InvalidToken");
 
+            if (positionX < 0 || positionX > 50 || positionY < 0 || positionY > 50)
+                return BadRequest("OutOfBounds: Position is out of map bounds (0-50)");
+                
             var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
             if (tuile is null) return null;
 
@@ -91,6 +97,12 @@ namespace ApiV1ControlleurMonstre.Controllers
 
             for (int value = -1; value <= 1; value++)
             {
+                //TODO change this
+                if(positionX + value < 0 || positionX + value >= 50 || positionY + value < 0 || positionY + value >= 50 || positionX -1 < 0 || positionY -1 < 0 || positionX + 1 > 50 || positionY +1 >50)
+                {
+                    tuilesArray[value + 1] = null;
+                    continue;
+                }
                 switch (orientation)
                 {
                     case "up":
@@ -154,6 +166,8 @@ namespace ApiV1ControlleurMonstre.Controllers
                     tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     if ((x >= -1 && x <= 1) && (y >= -1 && y <= 1) && tuile is null)
                     {
+                        if (positionX + x < 0 || positionX + x >= 50 || positionY + y < 0 || positionY + y >= 50)
+                            continue;
                         await PostTuile(TileGenerator.GenerateTuile(positionX + x, positionY + y));
                         tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     }
