@@ -55,6 +55,12 @@ async function GetTile(x, y, td) {
     td.style.cssText = `
     background-image: url(img/${tile.imageURL})
   `;
+    if (tile.monstre) {
+      let img = document.createElement("img");
+      img.id = "tileMonstre";
+      img.src = tile.monstre.spriteURL;
+      td.appendChild(img);
+    }
     td.removeEventListener("click", () =>
       GetTile(posX - 2 + c, posY - 2 + r, td)
     );
@@ -87,8 +93,6 @@ async function createGrid() {
       td.addEventListener("click", () =>
         GetTile(posX - 2 + c, posY - 2 + r, td)
       );
-      //td.addEventListener('click', () => showCoordinates(posX + c, posY + r));
-
       const p = document.createElement("p");
       p.innerText = "?";
       td.appendChild(p);
@@ -118,12 +122,6 @@ async function GetInitialTuiles() {
         }
       });
     });
-    // for (let x = 1; x <= 3; x++) {
-    //   for (let y = 1; y <= 3; y++) {
-    //     gameGrid[y][x] = initialTiles[count];
-    //     count++;
-    //   }
-    // }
   } catch (error) {
     console.error("Erreur API : ", error);
   }
@@ -141,6 +139,13 @@ async function displayGameGrid() {
         if (td) {
           td.innerHTML = "";
           td.style.cssText = `background-image: url(img/${tile.imageURL})`;
+          if (tile.monstre) {
+            let img = document.createElement("img");
+            img.id = "tileMonstre";
+            img.src = tile.monstre.spriteURL;
+            td.appendChild(img);
+            continue;
+          }
           td.removeEventListener("click", () =>
             GetTile(posX - 2 + c, posY - 2 + r, td)
           );
@@ -151,6 +156,7 @@ async function displayGameGrid() {
       } else {
         const td = document.getElementById(`${posX + x}; ${posY + y}`);
         if (td != null) td.style.cssText = `background-image: `;
+        td.innerHTML = "";
       }
     }
   }
@@ -475,12 +481,23 @@ async function getInfoTile(x, y) {
   let tempTile = await getTileWithCoords(x, y);
   document.getElementById("coord-sel").innerHTML =
     tempTile["positionX"] + "," + tempTile["positionY"];
-  const type = await callAPI(
-    `Tuiles/GetTuileType/${tempTile["type"]}`,
-    "GET",
-    "text"
-  );
-  document.getElementById("tuile-type").innerHTML = type;
+  document.getElementById("tuile-type").innerHTML = tempTile.typeTuile;
   document.getElementById("is-traversable").innerHTML =
     tempTile["estTraversable"];
+  if (tempTile.monstre) {
+    setInfoMonster(tempTile.monstre);
+  }
+}
+
+async function setInfoMonster(monstre) {
+  document.getElementById("monstre-nom").innerHTML = monstre.nom;
+  document.getElementById("monstre-pv").innerHTML =
+    monstre.pointsVieActuels + "/" + monstre.pointsVieMax;
+  document.getElementById("monstre-force").innerHTML = monstre.force;
+  document.getElementById("monstre-defense").innerHTML = monstre.defense;
+  document.getElementById("monstre-niveau").innerHTML = monstre.niveau;
+  document.getElementById("monstre-xp").innerHTML = monstre.experience;
+  document.getElementById("monstre-type1").innerHTML = monstre.type1;
+  if (monstre.type2)
+    document.getElementById("monstre-type2").innerHTML = monstre.type2;
 }
