@@ -1,6 +1,7 @@
 ﻿using ApiV1ControlleurMonstre.Data.Context;
 using ApiV1ControlleurMonstre.DTOs;
 using ApiV1ControlleurMonstre.Models;
+using ApiV1ControlleurMonstre.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
@@ -28,7 +29,7 @@ namespace ApiV1ControlleurMonstre.Controllers
 
         // GET: api/GetOrCreateTuile/10/10
         [HttpGet("GetOrCreateTuile/{positionX}/{positionY}")]
-        public async Task<ActionResult<Tuile>> GetOrCreateTuile(int positionX, int positionY)
+        public async Task<ActionResult<TuileDto>> GetOrCreateTuile(int positionX, int positionY)
         {
             Request.Headers.TryGetValue("userToken", out StringValues token);
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
@@ -38,15 +39,20 @@ namespace ApiV1ControlleurMonstre.Controllers
 
             if (tuile == null)
             {
-                await PostTuile(GenTuile.GenerateTuile(positionX, positionY));
+                await PostTuile(TileGenerator.GenerateTuile(positionX, positionY));
                 tuile = await _context.Tuiles.FindAsync(positionX, positionY);
             }
-                return tuile;
+
+            var monstre = await _context.InstanceMonstres
+                .Include(im => im.Monstre)
+                .FirstOrDefaultAsync(m => m.PositionX == positionX && m.PositionY == positionY);
+
+            return TuileDto.FromModel(tuile, monstre);
         }
 
         // GET: api/Tuiles/5/5
         [HttpGet("GetTuile/{positionX}/{positionY}")]
-        public async Task<ActionResult<TuileAvecInfosDto>> GetTuile(int positionX, int positionY)
+        public async Task<ActionResult<TuileDto>> GetTuile(int positionX, int positionY)
         {
             Request.Headers.TryGetValue("userToken", out StringValues token);
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
@@ -59,13 +65,13 @@ namespace ApiV1ControlleurMonstre.Controllers
                 .Include(im => im.Monstre)
                 .FirstOrDefaultAsync(m => m.PositionX == positionX && m.PositionY == positionY);
 
-            return TuileAvecInfosDto.FromModel(tuile, monstre);
+            return TuileDto.FromModel(tuile, monstre);
         }
 
         // GET: api/Tuiles/10/10
         // Get une ligne de tuiles à partir d'une orientation
         [HttpGet("GetTuilesLine/{orientation}")]
-        public async Task<ActionResult<Tuile[]>> GetTuilesLine(string orientation)
+        public async Task<ActionResult<TuileDto[]>> GetTuilesLine(string orientation)
         {
             Request.Headers.TryGetValue("userToken", out StringValues token);
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
@@ -80,7 +86,7 @@ namespace ApiV1ControlleurMonstre.Controllers
             if (orientation != "up" && orientation != "down" && orientation != "left" && orientation != "right")
                 return BadRequest($"InvalidOrientation: Orientation \"{orientation}\" is invalid\n\tValid inputs are: up, down, left, right");
             
-            Tuile[] tuilesArray = new Tuile[3];
+            TuileDto[] tuilesArray = new TuileDto[3];
             Tuile tuile = null;
 
             for (int value = -1; value <= 1; value++)
@@ -89,36 +95,45 @@ namespace ApiV1ControlleurMonstre.Controllers
                 {
                     case "up":
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
-                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX + value, positionY - 1));
+                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + value, positionY - 1));
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
                         break;
                     case "down":
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
-                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX + value, positionY + 1));
+                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + value, positionY + 1));
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
                         break;
                     case "left":
                         tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
-                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX - 1, positionY + value));
+                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX - 1, positionY + value));
                         tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
                         break;
                     case "right":
                         tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
-                        if (tuile == null) await PostTuile(GenTuile.GenerateTuile(positionX + 1, positionY + value));
+                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + 1, positionY + value));
                         tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
                         break;
                     default:
                         return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\nValid inputs are: up, down, left, right");
                 }
-                if (tuile is null) tuilesArray[value + 1] = null;
-                else tuilesArray[value + 1] = tuile;
+                if (tuile is null) 
+                {
+                    tuilesArray[value + 1] = null;
+                }
+                else 
+                {
+                    var monstre = await _context.InstanceMonstres
+                        .Include(im => im.Monstre)
+                        .FirstOrDefaultAsync(m => m.PositionX == tuile.PositionX && m.PositionY == tuile.PositionY);
+                    tuilesArray[value + 1] = TuileDto.FromModel(tuile, monstre);
+                }
             }
             return tuilesArray;
         }
 
         // GET: api/Tuiles/GetInitialTuiles
         [HttpGet("GetInitialTuiles")]
-        public async Task<ActionResult<List<Tuile>>> GetInitialTuiles()
+        public async Task<ActionResult<List<TuileDto>>> GetInitialTuiles()
         {
             Request.Headers.TryGetValue("userToken", out StringValues token);
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
@@ -128,7 +143,7 @@ namespace ApiV1ControlleurMonstre.Controllers
             int positionX = personnage.PositionX;
             int positionY = personnage.PositionY;
 
-            List<Tuile> tuilesArray = new List<Tuile>();
+            List<TuileDto> tuilesArray = new List<TuileDto>();
             Tuile tuile = null;
 
             // Prend toutes les tuiles dans la map
@@ -139,10 +154,17 @@ namespace ApiV1ControlleurMonstre.Controllers
                     tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     if ((x >= -1 && x <= 1) && (y >= -1 && y <= 1) && tuile is null)
                     {
-                        await PostTuile(GenTuile.GenerateTuile(positionX + x, positionY + y));
+                        await PostTuile(TileGenerator.GenerateTuile(positionX + x, positionY + y));
                         tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     }
-                    tuilesArray.Add(tuile);
+                    
+                    if (tuile != null)
+                    {
+                        var monstre = await _context.InstanceMonstres
+                            .Include(im => im.Monstre)
+                            .FirstOrDefaultAsync(m => m.PositionX == tuile.PositionX && m.PositionY == tuile.PositionY);
+                        tuilesArray.Add(TuileDto.FromModel(tuile, monstre));
+                    }
                 }
             }
             return tuilesArray;

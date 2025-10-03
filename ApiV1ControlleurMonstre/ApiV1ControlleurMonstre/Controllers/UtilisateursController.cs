@@ -1,5 +1,6 @@
 ﻿using ApiV1ControlleurMonstre.Data.Context;
 using ApiV1ControlleurMonstre.Models;
+using ApiV1ControlleurMonstre.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -32,7 +33,7 @@ namespace ApiV1ControlleurMonstre.Controllers
             if (await UtilisateurExist(utilisateur.Email))
                 return Conflict("EmailAlreadyExists");
 
-            utilisateur.Password = Hashing.Compute(utilisateur.Password);
+            utilisateur.Password = HashingUtility.Compute(utilisateur.Password);
             utilisateur.DateInscription = DateTime.Now;
             utilisateur.IsConnected = true;
             utilisateur.Token = GenerateJwtToken(utilisateur);
@@ -56,7 +57,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                 if (spawnTuile == null)
                 {
                     var tuilesController = new TuilesController(_context);
-                    spawnTuile = GenTuile.GenerateTuile(posX, posY);
+                    spawnTuile = TileGenerator.GenerateTuile(posX, posY);
                     
                     // Ne sauvegarder la tuile que si elle est traversable
                     if (spawnTuile.EstTraversable)
@@ -93,7 +94,7 @@ namespace ApiV1ControlleurMonstre.Controllers
         {
             // Vérification de l'utilisateur
             var utilisateur = await _context.Utilisateurs
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == Hashing.Compute(password));
+                .FirstOrDefaultAsync(u => u.Email == email && u.Password == HashingUtility.Compute(password));
 
             if (utilisateur == null)
                 return Unauthorized("InvalidEmailPassword");

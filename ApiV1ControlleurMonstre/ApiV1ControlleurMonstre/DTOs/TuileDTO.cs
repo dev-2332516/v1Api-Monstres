@@ -2,7 +2,7 @@ using ApiV1ControlleurMonstre.Models;
 
 namespace ApiV1ControlleurMonstre.DTOs
 {
-    public class TuileAvecInfosDto
+    public class TuileDto
     {
         public int PositionX { get; set; }
         public int PositionY { get; set; }
@@ -15,9 +15,9 @@ namespace ApiV1ControlleurMonstre.DTOs
         // Indique si le joueur peut se déplacer sur cette tuile
         public bool EstTraversable { get; set; }
 
-        public static TuileAvecInfosDto FromModel(Tuile tuile, InstanceMonstre? instanceMonstre = null)
+        public static TuileDto FromModel(Tuile tuile, InstanceMonstre? instanceMonstre = null)
         {
-            return new TuileAvecInfosDto
+            return new TuileDto
             {
                 PositionX = tuile.PositionX,
                 PositionY = tuile.PositionY,
