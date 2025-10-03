@@ -167,7 +167,9 @@ async function moveGrid(direction) {
       if (direction == "right") posX++;
       await shiftTable(direction);
       await shiftGameGrid(direction);
-      await getNewLines(direction);
+      if ((posY < 49 && posY > 1) || (posX < 49 && posX > 1)) {
+        await getNewLines(direction);
+      }
       await displayGameGrid();
     }
   } catch (error) {
