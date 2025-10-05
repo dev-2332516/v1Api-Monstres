@@ -1,6 +1,7 @@
 ﻿using ApiV1ControlleurMonstre.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using ApiV1ControlleurMonstre.Models;
+using ApiV1ControlleurMonstre.Utilities;
 
 
 namespace ApiV1ControlleurMonstre.Services
@@ -73,23 +74,43 @@ namespace ApiV1ControlleurMonstre.Services
         private async Task<Tuile> FindValidTileForMonster(MonsterContext context, Random random, CancellationToken cancellationToken)
         {
             // Essayer jusqu'à 10 fois de trouver une tuile valide
-            for (int attempt = 0; attempt < 10; attempt++)
+            for (int attempt = 0; attempt < 50; attempt++)
             {
-                int x = random.Next(0, 50);
-                int y = random.Next(0, 50);
+                int x = random.Next(0, 51); 
+                int y = random.Next(0, 51);
 
                 var tile = await context.Tuiles.FindAsync(new object[] { x, y }, cancellationToken);
                 
-                // Si la tuile n'existe pas, la créer
+                // Si la tuile n'existe pas, essayer de la générer jusqu'à avoir une tuile traversable
                 if (tile == null)
                 {
-                    tile = new Tuile(x, y, TuileTypeEnum.Herbe, true, Tuile.stringImageUrl[TuileTypeEnum.Herbe]);
-                    context.Tuiles.Add(tile);
-                    await context.SaveChangesAsync(cancellationToken);
+                    // Essayer jusqu'à 10 fois de générer une tuile traversable à cette position
+                    for (int genAttempt = 0; genAttempt < 10; genAttempt++)
+                    {
+                        tile = TileGenerator.GenerateTuile(x, y);
+                        
+                        // Si la tuile générée est traversable et pas une ville, on la garde
+                        if (tile.EstTraversable && tile.Type != TuileTypeEnum.Ville)
+                        {
+                            context.Tuiles.Add(tile);
+                            await context.SaveChangesAsync(cancellationToken);
+                            break;
+                        }
+                    }
+                    
+                    // Si après 10 tentatives on n'a pas de tuile valide, forcer une tuile d'herbe
+                    if (tile == null || !tile.EstTraversable || tile.Type == TuileTypeEnum.Ville)
+                    {
+                        tile = new Tuile(x, y, TuileTypeEnum.Herbe, true, Tuile.stringImageUrl[TuileTypeEnum.Herbe]);
+                        context.Tuiles.Add(tile);
+                        await context.SaveChangesAsync(cancellationToken);
+                    }
                 }
 
                 // Vérifier si la tuile est valide pour un monstre
-                if (tile.EstTraversable && tile.Type != TuileTypeEnum.Ville && !await context.InstanceMonstres.AnyAsync(m => m.PositionX == x && m.PositionY == y, cancellationToken))
+                if (tile.EstTraversable && 
+                    tile.Type != TuileTypeEnum.Ville && 
+                    !await context.InstanceMonstres.AnyAsync(m => m.PositionX == x && m.PositionY == y, cancellationToken))
                 {
                     return tile;
                 }
