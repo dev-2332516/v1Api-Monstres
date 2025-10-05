@@ -97,31 +97,33 @@ namespace ApiV1ControlleurMonstre.Controllers
 
             for (int value = -1; value <= 1; value++)
             {
-                //TODO change this
-                if(positionX + value < 0 || positionX + value >= 50 || positionY + value < 0 || positionY + value >= 50 || positionX -1 < 0 || positionY -1 < 0 || positionX + 1 > 50 || positionY +1 >50)
-                {
-                    tuilesArray[value + 1] = null;
-                    continue;
-                }
                 switch (orientation)
                 {
                     case "up":
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
+                        if (positionX + value < 0 || positionX + value >= 50 || positionY - 1 < 0 || positionY - 1 >= 50)
+                            continue;
                         if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + value, positionY - 1));
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
                         break;
                     case "down":
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
+                        if (positionX + value < 0 || positionX + value >= 50 || positionY + 1 < 0 || positionY + 1 >= 50)
+                            continue;
                         if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + value, positionY + 1));
                         tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
                         break;
                     case "left":
                         tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
+                        if (positionX - 1 < 0 || positionX - 1 >= 50 || positionY + value < 0 || positionY + value >= 50)
+                            continue;
                         if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX - 1, positionY + value));
                         tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
                         break;
                     case "right":
                         tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
+                        if (positionX + 1 < 0 || positionX + 1 >= 50 || positionY + value < 0 || positionY + value >= 50)
+                            continue;
                         if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + 1, positionY + value));
                         tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
                         break;
