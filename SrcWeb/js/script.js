@@ -4,6 +4,12 @@ let posY = 10;
 
 let gameGrid = Array.from({ length: 5 }, () => Array(5).fill(null));
 
+// Add persistent 50x50 map (indexed by [x-1][y-1], world coords start at 1)
+const MAP_SIZE = 50;
+let mapArray = Array.from({ length: MAP_SIZE }, () =>
+  Array(MAP_SIZE).fill(null)
+);
+
 let deleteMonstre = false;
 let isDefeated = false;
 
@@ -48,13 +54,19 @@ async function setPersonnage() {
   document.getElementById("stat-def").innerHTML = personnage["defense"];
 }
 
+// GetTile: save fetched tile into mapArray
 async function GetTile(x, y, td) {
   try {
     // Remove the inner text from TD
     td.innerHTML = "";
     console.log(`Fetching tile at (${x}, ${y})`);
     const tile = await callAPI(`Tuiles/GetOrCreateTuile/${x}/${y}`, "GET");
-    gameGrid[y - (posY - 2)][x - (posX - 2)] = tile; // Met à jour la tuile dans gameGrid
+    // update gameGrid (y-index then x-index)
+    gameGrid[y - (posY - 2)][x - (posX - 2)] = tile;
+    // save into persistent map
+    if (x >= 1 && x <= MAP_SIZE && y >= 1 && y <= MAP_SIZE) {
+      mapArray[x - 1][y - 1] = tile;
+    }
     td.style.cssText = `
     background-image: url(img/${tile.imageURL})
   `;
@@ -114,14 +126,23 @@ async function GetInitialTuiles() {
     let count = 0;
     Array.from(table.children).forEach((tr, indexTr) => {
       Array.from(tr.children).forEach((td, indexTd) => {
-        let xToGet = td.id.split("; ")[0];
-        let yToGet = td.id.split("; ")[1];
+        let xToGet = Number(td.id.split("; ")[0]);
+        let yToGet = Number(td.id.split("; ")[1]);
         let tile = initialTiles.find(
           (matchTile) =>
             matchTile.positionX == xToGet && matchTile.positionY == yToGet
         );
         if (tile) {
           gameGrid[indexTr][indexTd] = tile;
+          // save to map
+          if (
+            tile.positionX >= 1 &&
+            tile.positionX <= MAP_SIZE &&
+            tile.positionY >= 1 &&
+            tile.positionY <= MAP_SIZE
+          ) {
+            mapArray[tile.positionX - 1][tile.positionY - 1] = tile;
+          }
         }
       });
     });
@@ -133,12 +154,21 @@ async function GetInitialTuiles() {
 
 // affichage de la grille qui se trouve dans gameGrid
 async function displayGameGrid() {
-  showCoordinates(gameGrid[2][2].positionX, gameGrid[2][2].positionY);
+  // center tile coords should exist; guard if not
+  const centerTile = gameGrid[2][2] || mapArray[posX - 1]?.[posY - 1];
+  if (centerTile) showCoordinates(centerTile.positionX, centerTile.positionY);
   for (let x = -2; x <= 2; x++) {
     for (let y = -2; y <= 2; y++) {
-      const tile = gameGrid[y + 2][x + 2];
+      // gameGrid row = y+2, col = x+2
+      let tile = gameGrid[y + 2][x + 2];
+      const worldX = posX + x;
+      const worldY = posY + y;
+      // if no tile in current viewport cache, try mapArray
+      if (!tile && worldX >= 1 && worldX <= MAP_SIZE && worldY >= 1 && worldY <= MAP_SIZE) {
+        tile = mapArray[worldX - 1][worldY - 1];
+      }
+      const td = document.getElementById(`${worldX}; ${worldY}`);
       if (tile) {
-        const td = document.getElementById(`${posX + x}; ${posY + y}`);
         if (td) {
           td.innerHTML = "";
           td.style.cssText = `background-image: url(img/${tile.imageURL})`;
