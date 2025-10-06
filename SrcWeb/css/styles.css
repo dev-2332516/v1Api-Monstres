@@ -94,7 +94,7 @@ hr {
     align-items: center;
 }
 
-#up-btn, #down-btn, #left-btn, #right-btn {
+#up-btn, #down-btn, #left-btn, #right-btn, #combat-sim {
     background: rgba(100, 181, 246, 0.2);
     border: 2px solid rgba(100, 181, 246, 0.5);
     color: white;
@@ -105,6 +105,21 @@ hr {
     transition: all 0.3s ease;
     min-width: 80px;
 }
+
+input, select, textarea{
+    color: #1a1a2e;
+}
+
+#sim-run-btn, #sim-close-btn {
+    background: rgba(100, 181, 246, 0.2);
+    border: 2px solid rgba(100, 181, 246, 0.5);
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
 
 #up-btn, #down-btn {
     width: 100px;
