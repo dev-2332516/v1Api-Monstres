@@ -4,6 +4,9 @@ let posY = 10;
 
 let gameGrid = Array.from({ length: 5 }, () => Array(5).fill(null));
 
+let deleteMonstre = false;
+let isDefeated = false;
+
 // Add event listeners for movement buttons
 document
   .getElementById("up-btn")
@@ -167,16 +170,27 @@ async function moveGrid(direction) {
   try {
     // Movement réel
     if (await movePersonnage(direction)) {
-      if (direction == "up") posY--;
-      if (direction == "down") posY++;
-      if (direction == "left") posX--;
-      if (direction == "right") posX++;
-      await shiftTable(direction);
-      await shiftGameGrid(direction);
-      if ((posY < 49 && posY > 1) || (posX < 49 && posX > 1)) {
-        await getNewLines(direction);
+      if (!isDefeated) {
+        if (direction == "up") posY--;
+        if (direction == "down") posY++;
+        if (direction == "left") posX--;
+        if (direction == "right") posX++;
+        await shiftTable(direction); 
+        await shiftGameGrid(direction);
+        if ((posY < 49 && posY > 1) || (posX < 49 && posX > 1)) {
+          await getNewLines(direction);
+        }
+        if (deleteMonstre) {
+          let monstreTuer = gameGrid[2][2].monstre;
+          showErrorPopup(`Vous avez tuer ${monstreTuer.nom} !`);
+          gameGrid[2][2].monstre = null;
+          deleteMonstre = false;
+        }
+        await displayGameGrid();
+      } else if (isDefeated) {
+        setPersonnage();
+        createGrid();
       }
-      await displayGameGrid();
     }
   } catch (error) {
     console.error("Error moving grid:", error);
@@ -196,6 +210,13 @@ async function movePersonnage(direction) {
   );
   if ((await response.status) != 200) {
     return false;
+  }
+  const data = await response.text();
+  if ((await data) == "WonFight") {
+    deleteMonstre = true;
+  }
+  if ((await data) == "LostFight") {
+    isDefeated = true;
   }
   return true;
 }

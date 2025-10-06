@@ -47,6 +47,7 @@ namespace ApiV1ControlleurMonstre.Controllers
         {
             Request.Headers.TryGetValue("userToken", out var token);
             Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
+            string winFight = "";
             if (user is not null)
             {
                 var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
@@ -131,6 +132,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                             personnage.PositionX = newX;
                             personnage.PositionY = newY;
                         }
+                        winFight = "WonFight";
                     }
                     else if (personnage.PointsVie <= 0)
                     {
@@ -151,7 +153,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                         // Restaurer les points de vie
                         personnage.PointsVie = personnage.PointsVieMax;
                         
-                        return Ok(new { message = "Vous avez été vaincu et téléporté à la ville la plus proche!" });
+                        return Ok(new { message = "LostFight" });
                     }
                     else
                     {
@@ -192,7 +194,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                         throw;
                     }
                 }
-                return Ok();
+                return Ok(winFight);
             }
             else return Unauthorized("InvalidToken: Token is invalid or missing");
         }
