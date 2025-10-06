@@ -142,6 +142,12 @@ async function displayGameGrid() {
         if (td) {
           td.innerHTML = "";
           td.style.cssText = `background-image: url(img/${tile.imageURL})`;
+          if (x == 0 && y == 0) {
+            let img = document.createElement("img");
+            img.id = "personage";
+            img.src = "https://s.namemc.com/3d/skin/body.png?id=63455d7069b397c2&model=classic";
+            td.appendChild(img);
+          }
           if (tile.monstre) {
             let img = document.createElement("img");
             img.id = "tileMonstre";
