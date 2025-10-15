@@ -84,57 +84,30 @@ namespace ApiV1ControlleurMonstre.Controllers
             if (user == null) return Unauthorized("InvalidToken");
             var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
             if (personnage == null) return NotFound("PersonnageNotFound");
-
-            int positionX = personnage.PositionX;
-            int positionY = personnage.PositionY;
-
+        
             // Vérifier si l'orientation est valide
-            if (orientation != "up" && orientation != "down" && orientation != "left" && orientation != "right")
+            if (!IsValidOrientation(orientation))
                 return BadRequest($"InvalidOrientation: Orientation \"{orientation}\" is invalid\n\tValid inputs are: up, down, left, right");
             
             TuileDto[] tuilesArray = new TuileDto[3];
-            Tuile tuile = null;
-
+        
             for (int value = -1; value <= 1; value++)
             {
-                switch (orientation)
+                var (x, y) = GetPositionForOrientation(personnage.PositionX, personnage.PositionY, orientation, value);
+                
+                if (IsOutOfBounds(x, y))
                 {
-                    case "up":
-                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
-                        if (positionX + value < 0 || positionX + value >= 50 || positionY - 1 < 0 || positionY - 1 >= 50)
-                            continue;
-                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + value, positionY - 1));
-                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY - 1);
-                        break;
-                    case "down":
-                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
-                        if (positionX + value < 0 || positionX + value >= 50 || positionY + 1 < 0 || positionY + 1 >= 50)
-                            continue;
-                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + value, positionY + 1));
-                        tuile = await _context.Tuiles.FindAsync(positionX + value, positionY + 1);
-                        break;
-                    case "left":
-                        tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
-                        if (positionX - 1 < 0 || positionX - 1 >= 50 || positionY + value < 0 || positionY + value >= 50)
-                            continue;
-                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX - 1, positionY + value));
-                        tuile = await _context.Tuiles.FindAsync(positionX - 1, positionY + value);
-                        break;
-                    case "right":
-                        tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
-                        if (positionX + 1 < 0 || positionX + 1 >= 50 || positionY + value < 0 || positionY + value >= 50)
-                            continue;
-                        if (tuile == null) await PostTuile(TileGenerator.GenerateTuile(positionX + 1, positionY + value));
-                        tuile = await _context.Tuiles.FindAsync(positionX + 1, positionY + value);
-                        break;
-                    default:
-                        return BadRequest($"InvalidOrienation: Orienation \"{orientation}\" is invalid\nValid inputs are: up, down, left, right");
+                    tuilesArray[value + 1] = null;
+                    continue;
                 }
-                if (tuile is null) 
+        
+                var tuile = await GetOrCreateTuileAtPosition(x, y);
+                
+                if (tuile == null)
                 {
                     tuilesArray[value + 1] = null;
                 }
-                else 
+                else
                 {
                     var monstre = await _context.InstanceMonstres
                         .Include(im => im.Monstre)
@@ -143,6 +116,39 @@ namespace ApiV1ControlleurMonstre.Controllers
                 }
             }
             return tuilesArray;
+        }
+        
+        private bool IsValidOrientation(string orientation)
+        {
+            return orientation == "up" || orientation == "down" || orientation == "left" || orientation == "right";
+        }
+        
+        private (int x, int y) GetPositionForOrientation(int baseX, int baseY, string orientation, int offset)
+        {
+            return orientation switch
+            {
+                "up" => (baseX + offset, baseY - 1),
+                "down" => (baseX + offset, baseY + 1),
+                "left" => (baseX - 1, baseY + offset),
+                "right" => (baseX + 1, baseY + offset),
+                _ => throw new ArgumentException($"Invalid orientation: {orientation}")
+            };
+        }
+        
+        private bool IsOutOfBounds(int x, int y)
+        {
+            return x < 0 || x >= 50 || y < 0 || y >= 50;
+        }
+        
+        private async Task<Tuile> GetOrCreateTuileAtPosition(int x, int y)
+        {
+            var tuile = await _context.Tuiles.FindAsync(x, y);
+            if (tuile == null)
+            {
+                await PostTuile(TileGenerator.GenerateTuile(x, y));
+                tuile = await _context.Tuiles.FindAsync(x, y);
+            }
+            return tuile;
         }
 
         // GET: api/Tuiles/GetInitialTuiles
@@ -186,10 +192,8 @@ namespace ApiV1ControlleurMonstre.Controllers
             return tuilesArray;
         }
 
-        // POST: api/Tuiles
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Tuile>> PostTuile(Tuile tuile)
+
+        private async Task<ActionResult<Tuile>> PostTuile(Tuile tuile)
         {
             _context.Tuiles.Add(tuile);
             try
@@ -198,7 +202,7 @@ namespace ApiV1ControlleurMonstre.Controllers
             }
             catch (DbUpdateException)
             {
-                if (TuileExists(tuile.PositionX))
+                if (TuileExists(tuile.PositionX, tuile.PositionY))
                 {
                     return Conflict();
                 }
@@ -211,21 +215,6 @@ namespace ApiV1ControlleurMonstre.Controllers
             return CreatedAtAction(nameof(GetTuile), new { positionX = tuile.PositionX, positionY = tuile.PositionY }, tuile);
         }
 
-        // DELETE: api/Tuiles/5
-        [HttpDelete("{positionX}/{positionY}")]
-        public async Task<IActionResult> DeleteTuile(int positionX, int positionY)
-        {
-            var tuile = await _context.Tuiles.FindAsync(positionX, positionY);
-            if (tuile == null)
-            {
-                return NotFound();
-            }
-
-            _context.Tuiles.Remove(tuile);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
 
         [HttpGet("GetTuileType/{type}")]
         public ActionResult<string> GetTuileType(int type)
@@ -234,9 +223,9 @@ namespace ApiV1ControlleurMonstre.Controllers
             return value;
         }
 
-        private bool TuileExists(int positionX)
+        private bool TuileExists(int positionX, int positionY)
         {
-            return _context.Tuiles.Any(e => e.PositionX == positionX);
+            return _context.Tuiles.Any(e => e.PositionX == positionX && e.PositionY == positionY);
         }
         
     }
