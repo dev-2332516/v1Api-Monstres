@@ -1,3 +1,5 @@
+const EXPIRY_TIME = 3600
+
 function isUserLoggedIn() {
   return !!localStorage.getItem("jwtToken");
 }
@@ -63,8 +65,14 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         );
         if (response.ok) {
-          const token = await response.text(); // La réponse renvoie seulement le token JWT
-          localStorage.setItem("jwtToken", token);
+          const now = new Date()
+          const expire = Math.floor(new Date().getTime()/1000.0) + EXPIRY_TIME
+          // const tempToken = await response.text(); // La réponse renvoie seulement le token JWT
+          const token = {
+            value: await response.text(),
+            expiry: expire
+          }
+          localStorage.setItem("jwtToken", JSON.stringify(token));
           updateUIBasedOnAuth();
           document.getElementById("login-message").textContent =
             "Connexion réussie !";

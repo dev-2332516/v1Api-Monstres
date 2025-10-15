@@ -22,8 +22,17 @@ async function GetTile(x, y, td) {
       img.src = tile.monstre.spriteURL;
       td.appendChild(img);
     }
-    td.removeEventListener("click", getTileClick(x, y));
-    td.addEventListener("click", GetInfoTileClick(x, y));
+
+    // remove any previous "get tile" handler (stable reference stored on the element)
+    if (td.getTileClick) {
+      td.removeEventListener("click", td.getTileClick);
+      td.getTileClick = null;
+    }
+    // add info handler (store reference so it can be removed later)
+    td.GetInfoTileClick = function () {
+      getInfoTile(x, y);
+    };
+    td.addEventListener("click", td.GetInfoTileClick);
   } catch (error) {
     console.error("Erreur API : ", error);
   }
@@ -49,9 +58,12 @@ async function createGrid() {
     for (let c = 0; c < 5; c++) {
       const td = document.createElement("td");
       td.id = `${posX - 2 + c}; ${posY - 2 + r}`;
-      td.addEventListener("click", function getTileClick() {
-        GetTile(posX - 2 + c, posY - 2 + r, td);
-      });
+      td._coords = { x: posX - 2 + c, y: posY - 2 + r };
+      td.getTileClick = function () {
+        GetTile(td._coords.x, td._coords.y, td);
+      };
+      td.addEventListener("click", td.getTileClick);
+
       const p = document.createElement("p");
       p.innerText = "?";
       td.appendChild(p);
@@ -72,13 +84,10 @@ async function GetInitialTuiles() {
       Array.from(tr.children).forEach((td, indexTd) => {
         let xToGet = Number(td.id.split("; ")[0]);
         let yToGet = Number(td.id.split("; ")[1]);
-        let tile = initialTiles.find(
-          (matchTile) =>
-            matchTile.positionX == xToGet && matchTile.positionY == yToGet
-        );
+        let tile = initialTiles.find((matchTile) => matchTile.positionX == xToGet && matchTile.positionY == yToGet);
         if (tile) {
           gameGrid[indexTr][indexTd] = tile;
-          // save to map
+          // sauvegarde dans la map
           if (
             tile.positionX >= 1 &&
             tile.positionX <= MAP_SIZE &&
@@ -98,16 +107,14 @@ async function GetInitialTuiles() {
 
 // affichage de la grille qui se trouve dans gameGrid
 async function displayGameGrid() {
-  // center tile coords should exist; guard if not
   const centerTile = gameGrid[2][2] || mapArray[posX - 1]?.[posY - 1];
   if (centerTile) showCoordinates(centerTile.positionX, centerTile.positionY);
   for (let x = -2; x <= 2; x++) {
     for (let y = -2; y <= 2; y++) {
-      // gameGrid row = y+2, col = x+2
       let tile = gameGrid[y + 2][x + 2];
       const worldX = posX + x;
       const worldY = posY + y;
-      // if no tile in current viewport cache, try mapArray
+      // check si la map à déjà la tile demandé
       if (
         !tile &&
         worldX >= 1 &&
@@ -136,28 +143,37 @@ async function displayGameGrid() {
             td.appendChild(img);
             continue;
           }
-          td.removeEventListener("click", function getTileClick() {
-            GetTile(posX - 2 + c, posY - 2 + r, td);
-          });
-          td.addEventListener("click", function GetInfoTileClick() {
-            getInfoTile(td.id.split("; ")[0], td.id.split("; ")[1]);
-          });
+          if (td.getTileClick) {
+            td.removeEventListener("click", td.getTileClick);
+            td.getTileClick = null;
+          }
+          if (!td.GetInfoTileClick) {
+            td.GetInfoTileClick = function () {
+              getInfoTile(worldX, worldY);
+            };
+            td.addEventListener("click", td.GetInfoTileClick);
+          }
         }
       } else {
         const td = document.getElementById(`${posX + x}; ${posY + y}`);
         if (td != null) td.style.cssText = `background-image: `;
-        td.innerHTML = "";
-        td.removeEventListener("click", function getTileClick() {
-          GetTile(posX - 2 + c, posY - 2 + r, td);
-        });
-        td.addEventListener("click", function GetInfoTileClick() {
-          getInfoTile(td.id.split("; ")[0], td.id.split("; ")[1]);
-        });
+        td.innerHTML = "?";
+        if (td.GetInfoTileClick) {
+          td.removeEventListener("click", td.GetInfoTileClick);
+          td.GetInfoTileClick = null;
+        }
+        if (!td.getTileClick) {
+          td.getTileClick = function () {
+            GetTile(posX + x, posY + y, td);
+          };
+          td.addEventListener("click", td.getTileClick);
+        }
       }
     }
   }
 }
 
+// Fonction qui retourne une tuile selon les coordonnées x et y réel (pas locaux)
 function getTileWithCoords(x, y) {
   let tempTile = null;
   for (let i = 0; i < gameGrid.length; i++) {

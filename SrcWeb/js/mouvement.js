@@ -12,7 +12,6 @@ document
   .getElementById("right-btn")
   .addEventListener("click", () => moveGrid("right"));
 
-
 // Bouge la grid selon la direction donnée
 async function moveGrid(direction) {
   try {
@@ -23,7 +22,7 @@ async function moveGrid(direction) {
         if (direction == "down") posY++;
         if (direction == "left") posX--;
         if (direction == "right") posX++;
-        await shiftTable(direction); 
+        await shiftTable(direction);
         await shiftGameGrid(direction);
         if ((posY < 49 && posY > 1) || (posX < 49 && posX > 1)) {
           await getNewLines(direction);
@@ -47,24 +46,32 @@ async function moveGrid(direction) {
 }
 
 async function movePersonnage(direction) {
-  const response = await fetch(
-    `https://localhost:7223/api/Personnages/MovePersonnage/${direction}`,
-    {
-      method: "PUT",
-      headers: {
-        userToken: JSON.parse(localStorage.getItem("jwtToken")).token,
-      },
+  const dateVar = new Date();
+  let tokenObject = JSON.parse(localStorage.getItem("jwtToken"));
+  const now = Math.floor(new Date().getTime() / 1000.0);
+  if (!tokenObject || tokenObject.expiry <= now) {
+    document.getElementById("logout-btn").click();
+  } else {
+    let token = JSON.parse(tokenObject.value);
+    const response = await fetch(
+      `https://localhost:7223/api/Personnages/MovePersonnage/${direction}`,
+      {
+        method: "PUT",
+        headers: {
+          userToken: token.token,
+        },
+      }
+    );
+    if ((await response.status) != 200) {
+      return false;
     }
-  );
-  if ((await response.status) != 200) {
-    return false;
-  }
-  const data = await response.text();
-  if ((await data) == "WonFight") {
-    deleteMonstre = true;
-  }
-  if ((await data) == "LostFight") {
-    isDefeated = true;
+    const data = await response.text();
+    if ((await data) == "WonFight") {
+      deleteMonstre = true;
+    }
+    if ((await data) == "LostFight") {
+      isDefeated = true;
+    }
   }
   return true;
 }
