@@ -36,7 +36,7 @@ async function GetTile(x, y, td) {
   } catch (error) {
     console.error("Erreur API : ", error);
   }
-  await displayGameGrid();
+  // await displayGameGrid();
 }
 
 function showCoordinates(c, r) {
@@ -176,13 +176,26 @@ async function displayGameGrid() {
 // Fonction qui retourne une tuile selon les coordonnées x et y réel (pas locaux)
 function getTileWithCoords(x, y) {
   let tempTile = null;
+  return mapArray[x - 1][y - 1];
+  // for (let i = 0; i < gameGrid.length; i++) {
+  //   for (let j = 0; j < gameGrid[0].length; j++) {
+  //     const tile = gameGrid[i][j];
+  //     if (tile && tile.positionX == x && tile.positionY == y) {
+  //       tempTile = tile;
+  //       return tempTile;
+  //     }
+  //   }
+  // }
+}
+
+function setTileWithCoords(x, y, tileToSet) {
+  let tempTile = null;
   for (let i = 0; i < gameGrid.length; i++) {
     const line = gameGrid[i];
     for (let j = 0; j < line.length; j++) {
       const tile = line[j];
       if (tile && tile.positionX == x && tile.positionY == y) {
-        tempTile = tile;
-        return tempTile;
+        gameGrid[i][j] = tileToSet;
       }
     }
   }

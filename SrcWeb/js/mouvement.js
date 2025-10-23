@@ -12,6 +12,8 @@ document
   .getElementById("right-btn")
   .addEventListener("click", () => moveGrid("right"));
 
+let monstreBougerData;
+
 // Bouge la grid selon la direction donnée
 async function moveGrid(direction) {
   try {
@@ -34,9 +36,22 @@ async function moveGrid(direction) {
           deleteMonstre = false;
         }
         await displayGameGrid();
-      } else if (isDefeated) {
+      } else if (isDefeated && !isIndecis) {
         setPersonnage();
         createGrid();
+      } else if (isDefeated && isIndecis) {
+        showErrorPopup("Indécis");
+        setPersonnage();
+        let tempX = posX, tempY = posY;
+        if (direction == "up") tempY--;
+        if (direction == "down") tempY++;
+        if (direction == "left") tempX--;
+        if (direction == "right") tempX++;
+
+        // Get le monstre dans la tile et update
+        let tempTile = getTileWithCoords(tempX, tempY);
+        tempTile.monstre.pointsVieActuels = monstreBougerData;
+        setTileWithCoords(tempX, tempY, tempTile);
       }
     }
   } catch (error) {
@@ -66,11 +81,23 @@ async function movePersonnage(direction) {
       return false;
     }
     const data = await response.text();
-    if ((await data) == "WonFight") {
+    let dataParsed = JSON.parse(data);
+    if ((await dataParsed.message) == "Moved") {
+      deleteMonstre = false;
+      isDefeated = false;
+      isIndecis = false;
+    }
+    if ((await dataParsed.message) == "WonFight") {
       deleteMonstre = true;
     }
-    if ((await data) == "LostFight") {
+    if ((await dataParsed.message) == "LostFight") {
       isDefeated = true;
+    }
+    if ((await dataParsed.message) == "Indecis") {
+      deleteMonstre = false;
+      isDefeated = true;
+      isIndecis = true;
+      monstreBougerData = dataParsed.ptsVieMonstre;
     }
   }
   return true;
@@ -155,24 +182,24 @@ async function getNewLines(direction) {
   const newTiles = await callAPI(`Tuiles/GetTuilesLine/${direction}`, "GET");
   switch (direction) {
     case "up":
-      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[0];
-      if (gameGrid[1][2] == null) gameGrid[1][2] = newTiles[1];
-      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[2];
+      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[0]; mapArray[newTiles[0].positionX - 1][newTiles[0].positionY - 1] = newTiles[0];
+      if (gameGrid[1][2] == null) gameGrid[1][2] = newTiles[1]; mapArray[newTiles[1].positionX - 1][newTiles[1].positionY - 1] = newTiles[1];
+      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[2]; mapArray[newTiles[2].positionX - 1][newTiles[2].positionY - 1] = newTiles[2];
       break;
     case "down":
-      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[0];
-      if (gameGrid[3][2] == null) gameGrid[3][2] = newTiles[1];
-      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[2];
+      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[0]; mapArray[newTiles[0].positionX - 1][newTiles[0].positionY - 1] = newTiles[0];
+      if (gameGrid[3][2] == null) gameGrid[3][2] = newTiles[1]; mapArray[newTiles[1].positionX - 1][newTiles[1].positionY - 1] = newTiles[1];
+      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[2]; mapArray[newTiles[2].positionX - 1][newTiles[2].positionY - 1] = newTiles[2];
       break;
     case "left":
-      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[0];
-      if (gameGrid[2][1] == null) gameGrid[2][1] = newTiles[1];
-      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[2];
+      if (gameGrid[1][1] == null) gameGrid[1][1] = newTiles[0]; mapArray[newTiles[0].positionX - 1][newTiles[0].positionY - 1] = newTiles[0];
+      if (gameGrid[2][1] == null) gameGrid[2][1] = newTiles[1]; mapArray[newTiles[1].positionX - 1][newTiles[1].positionY - 1] = newTiles[1];
+      if (gameGrid[3][1] == null) gameGrid[3][1] = newTiles[2]; mapArray[newTiles[2].positionX - 1][newTiles[2].positionY - 1] = newTiles[2];
       break;
     case "right":
-      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[0];
-      if (gameGrid[2][3] == null) gameGrid[2][3] = newTiles[1];
-      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[2];
+      if (gameGrid[1][3] == null) gameGrid[1][3] = newTiles[0]; mapArray[newTiles[0].positionX - 1][newTiles[0].positionY - 1] = newTiles[0];
+      if (gameGrid[2][3] == null) gameGrid[2][3] = newTiles[1]; mapArray[newTiles[1].positionX - 1][newTiles[1].positionY - 1] = newTiles[1];
+      if (gameGrid[3][3] == null) gameGrid[3][3] = newTiles[2]; mapArray[newTiles[2].positionX - 1][newTiles[2].positionY - 1] = newTiles[2];
       break;
   }
 }

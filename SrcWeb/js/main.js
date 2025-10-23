@@ -6,13 +6,16 @@ let gameGrid = Array.from({ length: 5 }, () => Array(5).fill(null));
 
 // Map complète
 const MAP_SIZE = 50;
-let mapArray = Array.from({ length: MAP_SIZE }, () =>
-  Array(MAP_SIZE).fill(null)
-);
+let mapArray = Array.from({ length: 49 }, () => Array(49).fill(null));
+// let mapArray = Array.from({ length: MAP_SIZE }, () =>
+//   Array(MAP_SIZE).fill(null)
+// );
+
+
 
 let deleteMonstre = false;
 let isDefeated = false;
-
+let isIndecis = false;
 async function callAPI(route, method, responseType) {
   const dateVar = new Date
   let tokenObject = JSON.parse(localStorage.getItem("jwtToken"));
