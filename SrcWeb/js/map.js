@@ -109,7 +109,6 @@ async function displayGameGrid() {
   if (centerTile) showCoordinates(centerTile.positionX, centerTile.positionY);
   for (let x = -2; x <= 2; x++) {
     for (let y = -2; y <= 2; y++) {
-      // let tile = gameGrid[y + 2][x + 2];
       const worldX = posX + x;
       const worldY = posY + y;
       // check si la map à déjà la tile demandé
