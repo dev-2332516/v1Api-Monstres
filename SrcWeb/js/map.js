@@ -8,7 +8,7 @@ async function GetTile(x, y, td) {
     console.log(`Fetching tile at (${x}, ${y})`);
     const tile = await callAPI(`Tuiles/GetOrCreateTuile/${x}/${y}`, "GET");
     // update gameGrid (y-index then x-index)
-    gameGrid[y - (posY - 2)][x - (posX - 2)] = tile;
+    // gameGrid[y - (posY - 2)][x - (posX - 2)] = tile;
     // save into persistent map
     if (x >= 1 && x <= MAP_SIZE && y >= 1 && y <= MAP_SIZE) {
       mapArray[x - 1][y - 1] = tile;
@@ -86,8 +86,6 @@ async function GetInitialTuiles() {
         let yToGet = Number(td.id.split("; ")[1]);
         let tile = initialTiles.find((matchTile) => matchTile.positionX == xToGet && matchTile.positionY == yToGet);
         if (tile) {
-          gameGrid[indexTr][indexTd] = tile;
-          // sauvegarde dans la map
           if (
             tile.positionX >= 1 &&
             tile.positionX <= MAP_SIZE &&
@@ -107,16 +105,15 @@ async function GetInitialTuiles() {
 
 // affichage de la grille qui se trouve dans gameGrid
 async function displayGameGrid() {
-  const centerTile = gameGrid[2][2] || mapArray[posX - 1]?.[posY - 1];
+  const centerTile = mapArray[posX - 1]?.[posY - 1];
   if (centerTile) showCoordinates(centerTile.positionX, centerTile.positionY);
   for (let x = -2; x <= 2; x++) {
     for (let y = -2; y <= 2; y++) {
-      let tile = gameGrid[y + 2][x + 2];
+      // let tile = gameGrid[y + 2][x + 2];
       const worldX = posX + x;
       const worldY = posY + y;
       // check si la map à déjà la tile demandé
       if (
-        !tile &&
         worldX >= 1 &&
         worldX <= MAP_SIZE &&
         worldY >= 1 &&
@@ -175,30 +172,11 @@ async function displayGameGrid() {
 
 // Fonction qui retourne une tuile selon les coordonnées x et y réel (pas locaux)
 function getTileWithCoords(x, y) {
-  let tempTile = null;
   return mapArray[x - 1][y - 1];
-  // for (let i = 0; i < gameGrid.length; i++) {
-  //   for (let j = 0; j < gameGrid[0].length; j++) {
-  //     const tile = gameGrid[i][j];
-  //     if (tile && tile.positionX == x && tile.positionY == y) {
-  //       tempTile = tile;
-  //       return tempTile;
-  //     }
-  //   }
-  // }
 }
 
 function setTileWithCoords(x, y, tileToSet) {
-  let tempTile = null;
-  for (let i = 0; i < gameGrid.length; i++) {
-    const line = gameGrid[i];
-    for (let j = 0; j < line.length; j++) {
-      const tile = line[j];
-      if (tile && tile.positionX == x && tile.positionY == y) {
-        gameGrid[i][j] = tileToSet;
-      }
-    }
-  }
+  mapArray[x - 1][y - 1] = tileToSet;
 }
 
 async function getInfoTile(x, y) {

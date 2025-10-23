@@ -2,7 +2,7 @@ const gameContainer = document.getElementById("grid-container");
 let posX = 10;
 let posY = 10;
 
-let gameGrid = Array.from({ length: 5 }, () => Array(5).fill(null));
+// let gameGrid = Array.from({ length: 5 }, () => Array(5).fill(null));
 
 // Map complète
 const MAP_SIZE = 50;
