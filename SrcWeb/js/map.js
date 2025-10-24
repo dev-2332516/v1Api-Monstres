@@ -29,9 +29,11 @@ async function GetTile(x, y, td) {
       td.getTileClick = null;
     }
     // add info handler (store reference so it can be removed later)
-    td.GetInfoTileClick = function () {
-      getInfoTile(x, y);
-    };
+    td.GetInfoTileClick = (function(capturedX, capturedY) {
+      return function () {
+        getInfoTile(capturedX, capturedY);
+      };
+    })(x, y);
     td.addEventListener("click", td.GetInfoTileClick);
   } catch (error) {
     console.error("Erreur API : ", error);
@@ -59,9 +61,11 @@ async function createGrid() {
       const td = document.createElement("td");
       td.id = `${posX - 2 + c}; ${posY - 2 + r}`;
       td._coords = { x: posX - 2 + c, y: posY - 2 + r };
-      td.getTileClick = function () {
-        GetTile(td._coords.x, td._coords.y, td);
-      };
+      td.getTileClick = (function(capturedTd) {
+        return function () {
+          GetTile(capturedTd._coords.x, capturedTd._coords.y, capturedTd);
+        };
+      })(td);
       td.addEventListener("click", td.getTileClick);
 
       const p = document.createElement("p");
@@ -123,6 +127,8 @@ async function displayGameGrid() {
       const td = document.getElementById(`${worldX}; ${worldY}`);
       if (tile) {
         if (td) {
+          // Mettre à jour les coordonnées du TD
+          td._coords = { x: worldX, y: worldY };
           td.innerHTML = "";
           td.style.cssText = `background-image: url(img/${tile.imageURL})`;
           if (x == 0 && y == 0) {
@@ -132,36 +138,43 @@ async function displayGameGrid() {
               "https://s.namemc.com/3d/skin/body.png?id=63455d7069b397c2&model=classic";
             td.appendChild(img);
           }
-          if (tile.monstre) {
-            let img = document.createElement("img");
-            img.id = "tileMonstre";
-            img.src = tile.monstre.spriteURL;
-            td.appendChild(img);
-            continue;
-          }
           if (td.getTileClick) {
             td.removeEventListener("click", td.getTileClick);
             td.getTileClick = null;
           }
           if (!td.GetInfoTileClick) {
-            td.GetInfoTileClick = function () {
-              getInfoTile(worldX, worldY);
-            };
+            td.GetInfoTileClick = (function(capturedX, capturedY) {
+              return function () {
+                getInfoTile(capturedX, capturedY);
+              };
+            })(worldX, worldY);
             td.addEventListener("click", td.GetInfoTileClick);
+          }
+          if (tile.monstre) {
+            let img = document.createElement("img");
+            img.id = "tileMonstre";
+            img.src = tile.monstre.spriteURL;
+            td.appendChild(img);
           }
         }
       } else {
         const td = document.getElementById(`${posX + x}; ${posY + y}`);
-        if (td != null) td.style.cssText = `background-image: `;
+        if (td != null) {
+          // Mettre à jour les coordonnées du TD
+          td._coords = { x: posX + x, y: posY + y };
+          td.style.cssText = `background-image: `;
+        }
         td.innerHTML = "?";
         if (td.GetInfoTileClick) {
           td.removeEventListener("click", td.GetInfoTileClick);
           td.GetInfoTileClick = null;
         }
         if (!td.getTileClick) {
-          td.getTileClick = function () {
-            GetTile(posX + x, posY + y, td);
-          };
+          td.getTileClick = (function(capturedX, capturedY, capturedTd) {
+            return function () {
+              GetTile(capturedX, capturedY, capturedTd);
+            };
+          })(posX + x, posY + y, td);
           td.addEventListener("click", td.getTileClick);
         }
       }
