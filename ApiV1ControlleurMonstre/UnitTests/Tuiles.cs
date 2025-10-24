@@ -1,9 +1,10 @@
-﻿using ApiV1ControlleurMonstre.Data.DTOs;
+﻿using ApiV1ControlleurMonstre.DTOs;
 using Xunit;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace UnitTests
+
+namespace ApiV1ControlleurMonstre.Tests
 {
     public class Tuiles : IClassFixture<WebApplicationFactory<Program>>
     {
@@ -15,7 +16,7 @@ namespace UnitTests
             _factory = factory;
             _client = factory.CreateClient();
         }
-    {
+
         [Fact]
         public void Inscription_WithValidData_ReturnsCreated()
         {
