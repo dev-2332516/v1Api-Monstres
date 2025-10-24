@@ -24,3 +24,14 @@ async function setInfoMonster(monstre) {
   if (monstre.type2)
     document.getElementById("monstre-type2").innerHTML = monstre.type2;
 }
+
+function clearInfoMonster() {
+  document.getElementById("monstre-nom").innerHTML = "";
+  document.getElementById("monstre-pv").innerHTML = "";
+  document.getElementById("monstre-force").innerHTML = "";
+  document.getElementById("monstre-defense").innerHTML = "";
+  document.getElementById("monstre-niveau").innerHTML = "";
+  document.getElementById("monstre-xp").innerHTML = "";
+  document.getElementById("monstre-type1").innerHTML = "";
+  document.getElementById("monstre-type2").innerHTML = "";
+}

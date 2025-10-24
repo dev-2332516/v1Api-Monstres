@@ -23,6 +23,7 @@ async function GetTile(x, y, td) {
       td.appendChild(img);
     }
 
+    getInfoTile(x, y);
     // remove any previous "get tile" handler (stable reference stored on the element)
     if (td.getTileClick) {
       td.removeEventListener("click", td.getTileClick);
@@ -107,10 +108,33 @@ async function GetInitialTuiles() {
   await displayGameGrid();
 }
 
+// Nettoie tous les event listeners de la grille
+function clearAllEventListeners() {
+  const table = document.getElementById("table");
+  if (table) {
+    Array.from(table.children).forEach((tr) => {
+      Array.from(tr.children).forEach((td) => {
+        // Supprimer tous les event listeners existants
+        if (td.getTileClick) {
+          td.removeEventListener("click", td.getTileClick);
+          td.getTileClick = null;
+        }
+        if (td.GetInfoTileClick) {
+          td.removeEventListener("click", td.GetInfoTileClick);
+          td.GetInfoTileClick = null;
+        }
+      });
+    });
+  }
+}
+
 // affichage de la grille qui se trouve dans gameGrid
 async function displayGameGrid() {
   const centerTile = mapArray[posX - 1]?.[posY - 1];
   if (centerTile) showCoordinates(centerTile.positionX, centerTile.positionY);
+  
+  // Nettoyer tous les event listeners existants avant de reconfigurer
+  clearAllEventListeners();
   for (let x = -2; x <= 2; x++) {
     for (let y = -2; y <= 2; y++) {
       const worldX = posX + x;
@@ -138,18 +162,12 @@ async function displayGameGrid() {
               "https://s.namemc.com/3d/skin/body.png?id=63455d7069b397c2&model=classic";
             td.appendChild(img);
           }
-          if (td.getTileClick) {
-            td.removeEventListener("click", td.getTileClick);
-            td.getTileClick = null;
-          }
-          if (!td.GetInfoTileClick) {
-            td.GetInfoTileClick = (function(capturedX, capturedY) {
-              return function () {
-                getInfoTile(capturedX, capturedY);
-              };
-            })(worldX, worldY);
-            td.addEventListener("click", td.GetInfoTileClick);
-          }
+          td.GetInfoTileClick = (function(capturedX, capturedY) {
+            return function () {
+              getInfoTile(capturedX, capturedY);
+            };
+          })(worldX, worldY);
+          td.addEventListener("click", td.GetInfoTileClick);
           if (tile.monstre) {
             let img = document.createElement("img");
             img.id = "tileMonstre";
@@ -165,18 +183,12 @@ async function displayGameGrid() {
           td.style.cssText = `background-image: `;
         }
         td.innerHTML = "?";
-        if (td.GetInfoTileClick) {
-          td.removeEventListener("click", td.GetInfoTileClick);
-          td.GetInfoTileClick = null;
-        }
-        if (!td.getTileClick) {
-          td.getTileClick = (function(capturedX, capturedY, capturedTd) {
-            return function () {
-              GetTile(capturedX, capturedY, capturedTd);
-            };
-          })(posX + x, posY + y, td);
-          td.addEventListener("click", td.getTileClick);
-        }
+        td.getTileClick = (function(capturedX, capturedY, capturedTd) {
+          return function () {
+            GetTile(capturedX, capturedY, capturedTd);
+          };
+        })(posX + x, posY + y, td);
+        td.addEventListener("click", td.getTileClick);
       }
     }
   }
@@ -200,6 +212,8 @@ async function getInfoTile(x, y) {
     tempTile["estTraversable"];
   if (tempTile.monstre) {
     setInfoMonster(tempTile.monstre);
+  } else {
+    clearInfoMonster();
   }
 }
 
