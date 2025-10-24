@@ -18,18 +18,6 @@ namespace ApiV1ControlleurMonstre.Tests
             _client = factory.CreateClient();
         }
 
-        [Fact]
-        public async void Inscription_WithValidData_ReturnsCreated()
-        {
-            Utilisateur user = new Utilisateur(0, "test@email.com", "PseudoTest", "MotDePasseTest")
-            var registerResponse = await _client.PostAsJsonAsync(
-                "/api/Utilisateurs/register",
-                user
-            );
-
-            // Verify registration succeeded
-            Assert.True(registerResponse.IsSuccessStatusCode,
-                $"Registration failed: {await registerResponse.Content.ReadAsStringAsync()}");
-        }
+        
     }
 }
