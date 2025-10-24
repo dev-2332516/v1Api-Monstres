@@ -2,6 +2,7 @@
 using Xunit;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using ApiV1ControlleurMonstre.Models;
 
 
 namespace ApiV1ControlleurMonstre.Tests
@@ -11,16 +12,24 @@ namespace ApiV1ControlleurMonstre.Tests
         private readonly WebApplicationFactory<Program> _factory;
         private readonly HttpClient _client;
 
-        public SimpleGameFlowTest(WebApplicationFactory<Program> factory)
+        public Tuiles(WebApplicationFactory<Program> factory)
         {
             _factory = factory;
             _client = factory.CreateClient();
         }
 
         [Fact]
-        public void Inscription_WithValidData_ReturnsCreated()
+        public async void Inscription_WithValidData_ReturnsCreated()
         {
+            Utilisateur user = new Utilisateur(0, "test@email.com", "PseudoTest", "MotDePasseTest")
+            var registerResponse = await _client.PostAsJsonAsync(
+                "/api/Utilisateurs/register",
+                user
+            );
 
+            // Verify registration succeeded
+            Assert.True(registerResponse.IsSuccessStatusCode,
+                $"Registration failed: {await registerResponse.Content.ReadAsStringAsync()}");
         }
     }
 }
