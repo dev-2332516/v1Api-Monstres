@@ -31,5 +31,15 @@ namespace ApiV1ControlleurMonstre.Constants
         
         // JWT Token
         public const int JWT_EXPIRY_HOURS = 1;
+        
+        // Génération et maintenance des monstres
+        public const int MAX_MONSTER_COUNT = 300;
+        public const int MAX_SPAWN_ATTEMPTS = 50;
+        public const int MAX_GENERATION_ATTEMPTS = 10;
+        public const int TILE_GENERATION_RETRY_ATTEMPTS = 5;
+        
+        // Statistiques et progression
+        public const int STAT_INCREASE_PER_LEVEL = 1;
+        public const int HP_INCREASE_PER_LEVEL = 1;
     }
 }

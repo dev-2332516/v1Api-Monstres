@@ -1,4 +1,5 @@
-﻿using ApiV1ControlleurMonstre.Data.Context;
+﻿using ApiV1ControlleurMonstre.Constants;
+using ApiV1ControlleurMonstre.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using ApiV1ControlleurMonstre.Models;
 using ApiV1ControlleurMonstre.Utilities;
@@ -23,7 +24,7 @@ namespace ApiV1ControlleurMonstre.Services
             var context = scope.ServiceProvider.GetRequiredService<MonsterContext>();
 
             var monsterCount = await context.InstanceMonstres.CountAsync(cancellationToken);
-            var monstersToCreate = 300 - monsterCount;
+            var monstersToCreate = GameConstants.MAX_MONSTER_COUNT - monsterCount;
 
             if (monstersToCreate > 0)
             {
@@ -73,19 +74,19 @@ namespace ApiV1ControlleurMonstre.Services
 
         private async Task<Tuile> FindValidTileForMonster(MonsterContext context, Random random, CancellationToken cancellationToken)
         {
-            // Essayer jusqu'à 10 fois de trouver une tuile valide
-            for (int attempt = 0; attempt < 50; attempt++)
+            // Essayer jusqu'à MAX_SPAWN_ATTEMPTS fois de trouver une tuile valide
+            for (int attempt = 0; attempt < GameConstants.MAX_SPAWN_ATTEMPTS; attempt++)
             {
-                int x = random.Next(0, 51); 
-                int y = random.Next(0, 51);
+                int x = random.Next(GameConstants.MAP_MIN_POSITION, GameConstants.MAP_MAX_POSITION + 1);
+                int y = random.Next(GameConstants.MAP_MIN_POSITION, GameConstants.MAP_MAX_POSITION + 1);
 
                 var tile = await context.Tuiles.FindAsync(new object[] { x, y }, cancellationToken);
                 
                 // Si la tuile n'existe pas, essayer de la générer jusqu'à avoir une tuile traversable
                 if (tile == null)
                 {
-                    // Essayer jusqu'à 10 fois de générer une tuile traversable à cette position
-                    for (int genAttempt = 0; genAttempt < 10; genAttempt++)
+                    // Essayer jusqu'à MAX_GENERATION_ATTEMPTS fois de générer une tuile traversable à cette position
+                    for (int genAttempt = 0; genAttempt < GameConstants.MAX_GENERATION_ATTEMPTS; genAttempt++)
                     {
                         tile = TileGenerator.GenerateTuile(x, y);
                         
@@ -98,7 +99,7 @@ namespace ApiV1ControlleurMonstre.Services
                         }
                     }
                     
-                    // Si après 10 tentatives on n'a pas de tuile valide, forcer une tuile d'herbe
+                    // Si après TILE_GENERATION_RETRY_ATTEMPTS tentatives on n'a pas de tuile valide, forcer une tuile d'herbe
                     if (tile == null || !tile.EstTraversable || tile.Type == TuileTypeEnum.Ville)
                     {
                         tile = new Tuile(x, y, TuileTypeEnum.Herbe, true, Tuile.stringImageUrl[TuileTypeEnum.Herbe]);
