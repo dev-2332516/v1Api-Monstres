@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     [DbContext(typeof(MonsterContext))]
-    [Migration("20250922050725_initial")]
-    partial class initial
+    [Migration("20251105190104_newmigration")]
+    partial class newmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,33 @@ namespace ApiV1ControlleurMonstre.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("ApiV1ControlleurMonstre.Models.InstanceMonstre", b =>
+                {
+                    b.Property<int>("PositionX")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PositionY")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonstreId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Niveau")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointsVieActuels")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointsVieMax")
+                        .HasColumnType("int");
+
+                    b.HasKey("PositionX", "PositionY");
+
+                    b.HasIndex("MonstreId");
+
+                    b.ToTable("InstanceMonstres");
+                });
 
             modelBuilder.Entity("ApiV1ControlleurMonstre.Models.Monstre", b =>
                 {
@@ -165,9 +192,23 @@ namespace ApiV1ControlleurMonstre.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Token")
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.ToTable("utilisateur", (string)null);
+                });
+
+            modelBuilder.Entity("ApiV1ControlleurMonstre.Models.InstanceMonstre", b =>
+                {
+                    b.HasOne("ApiV1ControlleurMonstre.Models.Monstre", "Monstre")
+                        .WithMany()
+                        .HasForeignKey("MonstreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Monstre");
                 });
 #pragma warning restore 612, 618
         }

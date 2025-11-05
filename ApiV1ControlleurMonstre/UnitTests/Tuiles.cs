@@ -1,9 +1,9 @@
 ﻿using ApiV1ControlleurMonstre.DTOs;
-using Xunit;
-using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using ApiV1ControlleurMonstre.Models;
-
+using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using Xunit;
 
 namespace ApiV1ControlleurMonstre.Tests
 {
@@ -18,6 +18,5 @@ namespace ApiV1ControlleurMonstre.Tests
             _client = factory.CreateClient();
         }
 
-        
     }
 }

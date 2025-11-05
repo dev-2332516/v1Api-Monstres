@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class newmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -96,20 +96,50 @@ namespace ApiV1ControlleurMonstre.Migrations
                     Password = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DateInscription = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    IsConnected = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    IsConnected = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Token = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_utilisateur", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "InstanceMonstres",
+                columns: table => new
+                {
+                    PositionX = table.Column<int>(type: "int", nullable: false),
+                    PositionY = table.Column<int>(type: "int", nullable: false),
+                    MonstreId = table.Column<int>(type: "int", nullable: false),
+                    Niveau = table.Column<int>(type: "int", nullable: false),
+                    PointsVieMax = table.Column<int>(type: "int", nullable: false),
+                    PointsVieActuels = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InstanceMonstres", x => new { x.PositionX, x.PositionY });
+                    table.ForeignKey(
+                        name: "FK_InstanceMonstres_Monstre_MonstreId",
+                        column: x => x.MonstreId,
+                        principalTable: "Monstre",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InstanceMonstres_MonstreId",
+                table: "InstanceMonstres",
+                column: "MonstreId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Monstre");
+                name: "InstanceMonstres");
 
             migrationBuilder.DropTable(
                 name: "Personnages");
@@ -119,6 +149,9 @@ namespace ApiV1ControlleurMonstre.Migrations
 
             migrationBuilder.DropTable(
                 name: "utilisateur");
+
+            migrationBuilder.DropTable(
+                name: "Monstre");
         }
     }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     [DbContext(typeof(MonsterContext))]
-    [Migration("20250926200650_CreateInstanceMonstre")]
-    partial class CreateInstanceMonstre
+    [Migration("20251105190409_newnewmigration")]
+    partial class newnewmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -202,11 +202,13 @@ namespace ApiV1ControlleurMonstre.Migrations
 
             modelBuilder.Entity("ApiV1ControlleurMonstre.Models.InstanceMonstre", b =>
                 {
-                    b.HasOne("ApiV1ControlleurMonstre.Models.Monstre", null)
+                    b.HasOne("ApiV1ControlleurMonstre.Models.Monstre", "Monstre")
                         .WithMany()
                         .HasForeignKey("MonstreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Monstre");
                 });
 #pragma warning restore 612, 618
         }
