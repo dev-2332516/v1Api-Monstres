@@ -28,29 +28,18 @@ namespace ApiV1ControlleurMonstre.Controllers
         [HttpGet("GetPersonnageFromUser/")]
         public async Task<ActionResult<Personnage>> GetPersonnageFromUser()
         {
-            try
+            Request.Headers.TryGetValue("userToken", out var token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
+            if (user is not null)
             {
-                Request.Headers.TryGetValue("userToken", out var token);
-                Utilisateur? user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
-                if (user is not null)
+                var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
+                if (personnage == null)
                 {
-                    var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
-                    if (personnage == null)
-                    {
-                        return NotFound("Personnage non trouvé pour cet utilisateur");
-                    }
-                    return personnage;
+                    return NotFound();
                 }
-                else return Unauthorized("InvalidToken: Token is invalid or missing");
+                return personnage;
             }
-            catch (DbUpdateException ex)
-            {
-                return StatusCode(500, $"Erreur de base de données: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erreur inattendue: {ex.Message}");
-            }
+            else return Unauthorized("InvalidToken: Token is invalid or missing");
         }
 
 
@@ -59,18 +48,18 @@ namespace ApiV1ControlleurMonstre.Controllers
         {
             var authResult = await AuthenticateUser();
             if (authResult.user == null) return Unauthorized("InvalidToken: Token is invalid or missing");
-            
+
             var personnage = await GetPersonnageByUserId(authResult.user.Id);
             if (personnage == null) return NotFound();
-        
+
             var (newX, newY) = CalculateNewPosition(personnage, direction);
             if (newX == -1 && newY == -1) return BadRequest("Invalid direction. Use 'up', 'down', 'left', or 'right'.");
-        
+
             var destinationTuile = await _context.Tuiles.FindAsync(newX, newY);
             if (destinationTuile == null) return BadRequest("La tuile de destination n'existe pas");
-        
+
             var monstre = await GetMonsterAtPosition(newX, newY);
-        
+
             if (!destinationTuile.EstTraversable)
             {
                 return BadRequest("Cette tuile n'est pas traversable");
@@ -84,24 +73,24 @@ namespace ApiV1ControlleurMonstre.Controllers
                 return await MovePlayerToPosition(personnage, newX, newY);
             }
         }
-        
+
         private async Task<(Utilisateur user, StringValues token)> AuthenticateUser()
         {
             Request.Headers.TryGetValue("userToken", out var token);
             var user = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Token == token.ToString());
             return (user, token);
         }
-        
+
         private async Task<Personnage> GetPersonnageByUserId(int userId)
         {
             return await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == userId);
         }
-        
+
         private (int newX, int newY) CalculateNewPosition(Personnage personnage, string direction)
         {
             int newX = personnage.PositionX;
             int newY = personnage.PositionY;
-        
+
             switch (direction.ToLower())
             {
                 case "up":
@@ -119,28 +108,28 @@ namespace ApiV1ControlleurMonstre.Controllers
                 default:
                     return (-1, -1); // Valeur d'erreur
             }
-        
+
             return (newX, newY);
         }
-        
+
         private async Task<InstanceMonstre> GetMonsterAtPosition(int x, int y)
         {
             return await _context.InstanceMonstres
                 .Include(m => m.Monstre)
                 .FirstOrDefaultAsync(m => m.PositionX == x && m.PositionY == y);
         }
-        
+
         private async Task<IActionResult> HandleCombat(Personnage personnage, InstanceMonstre monstre, Tuile destinationTuile, int newX, int newY)
         {
             var combatResult = CalculateCombat(personnage, monstre);
-            
+
             // Application des dégâts
             monstre.PointsVieActuels -= combatResult.degatsAuMonstre;
             personnage.PointsVie -= combatResult.degatsAuJoueur;
-            
+
             // Sauvegarder les changements même en cas de combat indécis
             await _context.SaveChangesAsync();
-        
+
             if (monstre.PointsVieActuels <= 0)
             {
                 return await HandlePlayerVictory(personnage, monstre, destinationTuile, newX, newY);
@@ -151,46 +140,51 @@ namespace ApiV1ControlleurMonstre.Controllers
             }
             else
             {
-                return Ok(new { 
-                    message = "Combat ! ",
+                return Ok(new
+                {
+                    message = "Indecis",
                     degatsInfliges = combatResult.degatsAuMonstre,
                     degatsRecus = combatResult.degatsAuJoueur,
                     ptsVieJoueur = personnage.PointsVie,
                     ptsVieMonstre = monstre.PointsVieActuels
                 });
+
             }
         }
-        
+
         private (int degatsAuMonstre, int degatsAuJoueur) CalculateCombat(Personnage personnage, InstanceMonstre monstre)
         {
             double facteurAleatoire = new Random().NextDouble() * (1.25 - 0.8) + 0.8;
-            
+
             int degatsAuMonstre = Math.Max(1, (int)((personnage.Force - (monstre.Monstre.DefenseBase + monstre.Niveau)) * facteurAleatoire));
             int degatsAuJoueur = Math.Max(1, (int)((monstre.Monstre.ForceBase + monstre.Niveau - personnage.Defense) * facteurAleatoire));
-        
+
             return (degatsAuMonstre, degatsAuJoueur);
         }
-        
+
         private async Task<IActionResult> HandlePlayerVictory(Personnage personnage, InstanceMonstre monstre, Tuile destinationTuile, int newX, int newY)
         {
             // Gain d'expérience
             int xpGagnee = monstre.Monstre.ExperienceBase + (monstre.Niveau * 10);
             personnage.Experience += xpGagnee;
-        
+
             // Vérification du niveau
             HandleLevelUp(personnage);
-        
+
             // Supprimer le monstre
             _context.InstanceMonstres.Remove(monstre);
-        
+
             // Déplacer le joueur
             personnage.PositionX = newX;
             personnage.PositionY = newY;
-        
+
             await SavePersonnageChanges(personnage);
-            return Ok("WonFight");
+            return Ok(new
+            {
+                message = "WonFight",
+            }); ;
         }
-        
+
         private void HandleLevelUp(Personnage personnage)
         {
             while (personnage.Experience >= 100)
@@ -203,38 +197,38 @@ namespace ApiV1ControlleurMonstre.Controllers
                 personnage.PointsVie = personnage.PointsVieMax;
             }
         }
-        
+
         private async Task<IActionResult> HandlePlayerDefeat(Personnage personnage)
         {
             // Trouver une ville proche pour la téléportation
             var villeProche = await _context.Tuiles
                 .Where(t => t.Type == TuileTypeEnum.Ville)
-                .OrderBy(t => Math.Pow(t.PositionX - personnage.PositionX, 2) + 
+                .OrderBy(t => Math.Pow(t.PositionX - personnage.PositionX, 2) +
                             Math.Pow(t.PositionY - personnage.PositionY, 2))
                 .FirstOrDefaultAsync();
-        
+
             if (villeProche != null)
             {
                 personnage.PositionX = villeProche.PositionX;
                 personnage.PositionY = villeProche.PositionY;
             }
-            
+
             // Restaurer les points de vie
             personnage.PointsVie = personnage.PointsVieMax;
-            
+
             await SavePersonnageChanges(personnage);
             return Ok(new { message = "LostFight" });
         }
-        
+
         private async Task<IActionResult> MovePlayerToPosition(Personnage personnage, int newX, int newY)
         {
             personnage.PositionX = newX;
             personnage.PositionY = newY;
-            
+
             await SavePersonnageChanges(personnage);
-            return Ok("");
+            return Ok(new { message = "Moved" });
         }
-        
+
         private async Task SavePersonnageChanges(Personnage personnage)
         {
             _context.Entry(personnage).State = EntityState.Modified;
@@ -254,19 +248,11 @@ namespace ApiV1ControlleurMonstre.Controllers
                 }
             }
         }
-        
+
 
         private bool PersonnageExists(int id)
         {
-            try
-            {
-                return _context.Personnages.Any(e => e.Id == id);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors de la vérification d'existence du personnage: {ex.Message}");
-                return false;
-            }
+            return _context.Personnages.Any(e => e.Id == id);
         }
     }
 }
