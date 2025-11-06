@@ -4,6 +4,7 @@ using ApiV1ControlleurMonstre.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiV1ControlleurMonstre.Migrations
 {
     [DbContext(typeof(MonsterContext))]
-    partial class MonsterContextModelSnapshot : ModelSnapshot
+    [Migration("20251106142759_QuestMigrationPesonnage")]
+    partial class QuestMigrationPesonnage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,12 +155,6 @@ namespace ApiV1ControlleurMonstre.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("DestinationPositionY")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("EstCompleter")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int>("NiveauSauvegarder")
                         .HasColumnType("int");
 
                     b.Property<int>("NombreATuer")
