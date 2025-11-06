@@ -5,7 +5,7 @@
 namespace ApiV1ControlleurMonstre.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateInstanceMonstre : Migration
+    public partial class newnewmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

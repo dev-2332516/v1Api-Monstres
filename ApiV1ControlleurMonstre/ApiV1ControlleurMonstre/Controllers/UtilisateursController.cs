@@ -12,6 +12,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using NuGet.LibraryModel;
 
 namespace ApiV1ControlleurMonstre.Controllers
 {
@@ -31,6 +32,9 @@ namespace ApiV1ControlleurMonstre.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] Utilisateur utilisateur)
         {
+            if (utilisateur.Email == "") return BadRequest("Missing email");
+            if (utilisateur.Password == "") return BadRequest("Missing password");
+            if (utilisateur.Pseudo == "") return BadRequest("Missing Username");
             if (await UtilisateurExist(utilisateur.Email))
                 return Conflict("EmailAlreadyExists");
 
@@ -50,10 +54,11 @@ namespace ApiV1ControlleurMonstre.Controllers
             // Chercher une tuile traversable pour le spawn
             do
             {
-                posX = rand.Next(2, 48);
-                posY = rand.Next(2, 48);
-                spawnTuile = await _context.Tuiles.FindAsync(posX, posY);
-                
+                spawnTuile = await _context.Tuiles
+                .Where(t => t.Type == TuileTypeEnum.Ville)
+                .FirstOrDefaultAsync();
+                posX = spawnTuile.PositionX;
+                posY = spawnTuile.PositionY;
                 // Si la tuile n'existe pas, la créer
                 if (spawnTuile == null)
                 {
