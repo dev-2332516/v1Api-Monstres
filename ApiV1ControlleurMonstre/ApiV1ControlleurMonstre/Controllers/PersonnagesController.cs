@@ -1,4 +1,5 @@
-﻿using ApiV1ControlleurMonstre.Data.Context;
+﻿using ApiV1ControlleurMonstre.Constants;
+using ApiV1ControlleurMonstre.Data.Context;
 using ApiV1ControlleurMonstre.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -27,18 +28,29 @@ namespace ApiV1ControlleurMonstre.Controllers
         [HttpGet("GetPersonnageFromUser/")]
         public async Task<ActionResult<Personnage>> GetPersonnageFromUser()
         {
-            Request.Headers.TryGetValue("userToken", out var token);
-            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
-            if (user is not null)
+            try
             {
-                var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
-                if (personnage == null)
+                Request.Headers.TryGetValue("userToken", out var token);
+                Utilisateur? user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
+                if (user is not null)
                 {
-                    return NotFound();
+                    var personnage = await _context.Personnages.FirstOrDefaultAsync(p => p.UtilisateurID == user.Id);
+                    if (personnage == null)
+                    {
+                        return NotFound("Personnage non trouvé pour cet utilisateur");
+                    }
+                    return personnage;
                 }
-                return personnage;
+                else return Unauthorized("InvalidToken: Token is invalid or missing");
             }
-            else return Unauthorized("InvalidToken: Token is invalid or missing");
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"Erreur de base de données: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erreur inattendue: {ex.Message}");
+            }
         }
 
 
@@ -246,7 +258,15 @@ namespace ApiV1ControlleurMonstre.Controllers
 
         private bool PersonnageExists(int id)
         {
-            return _context.Personnages.Any(e => e.Id == id);
+            try
+            {
+                return _context.Personnages.Any(e => e.Id == id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la vérification d'existence du personnage: {ex.Message}");
+                return false;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ApiV1ControlleurMonstre.Data.Context;
+using ApiV1ControlleurMonstre.Constants;
 using ApiV1ControlleurMonstre.Models;
 using ApiV1ControlleurMonstre.Utilities;
 using Microsoft.AspNetCore.Mvc;
@@ -69,19 +70,19 @@ namespace ApiV1ControlleurMonstre.Controllers
             } while (spawnTuile == null || !spawnTuile.EstTraversable);
 
             var personnage = new Personnage
-                {
-                    UtilisateurID = utilisateur.Id,
-                    Name = utilisateur.Pseudo,
-                    Niveau = 0,
-                    Experience = 0,
-                    PointsVie = 100,           // valeur de départ, ajustable
-                    PointsVieMax = 999,        // valeur maximale, ajustable
-                    Force = 10,                // valeur de base, ajustable
-                    Defense = 10,               // valeur de base, ajustable
-                    PositionX = posX,          // Position sur une tuile traversable
-                    PositionY = posY,
-                    DateCreation = DateTime.Now
-                };
+            {
+                UtilisateurID = utilisateur.Id,
+                Name = utilisateur.Pseudo,
+                Niveau = GameConstants.DEFAULT_PLAYER_LEVEL,
+                Experience = 0,
+                PointsVie = GameConstants.DEFAULT_PLAYER_HP,
+                PointsVieMax = GameConstants.DEFAULT_PLAYER_MAX_HP,
+                Force = GameConstants.DEFAULT_PLAYER_FORCE,
+                Defense = GameConstants.DEFAULT_PLAYER_DEFENSE,
+                PositionX = posX,
+                PositionY = posY,
+                DateCreation = DateTime.Now
+            };
 
             _context.Personnages.Add(personnage);
             await _context.SaveChangesAsync();
@@ -139,7 +140,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                     new Claim(ClaimTypes.NameIdentifier, utilisateur.Id.ToString()),
                     new Claim(ClaimTypes.Email, utilisateur.Email),
                 }),
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddHours(GameConstants.JWT_EXPIRY_HOURS),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
