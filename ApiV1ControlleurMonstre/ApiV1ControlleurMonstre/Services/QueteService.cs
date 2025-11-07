@@ -36,8 +36,7 @@ namespace ApiV1ControlleurMonstre.Services
                 {
                     // Sinon, généré une quest
 
-                    int typeQuete = Random.Shared.Next(3);
-                    switch (typeQuete)
+                    switch (Random.Shared.Next(3))
                     {
                         // Destination
                         case 0:
@@ -92,11 +91,39 @@ namespace ApiV1ControlleurMonstre.Services
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected async  override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             TimeSpan _checkInterval = TimeSpan.FromMinutes(10); // Check every 30 minutes
 
-            throw new NotImplementedException();
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<MonsterContext>();
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    // Set le prochain timestamp
+                    ServiceTimestamp serviceTimestamp = new ServiceTimestamp();
+                    serviceTimestamp.Timestamp = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() + 600;
+
+                    context.ServiceTimestamps.Add(serviceTimestamp);
+                    await context.SaveChangesAsync();
+
+                    await Task.Delay(_checkInterval, stoppingToken);
+                    await VerifyCompletion(context, stoppingToken);
+                    await RegenerateQuest(context, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occured when generating quests");
+                }
+            }
+
+
         }
     }
 }

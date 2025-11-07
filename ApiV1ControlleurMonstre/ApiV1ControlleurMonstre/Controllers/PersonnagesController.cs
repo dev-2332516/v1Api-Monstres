@@ -58,6 +58,24 @@ namespace ApiV1ControlleurMonstre.Controllers
             var destinationTuile = await _context.Tuiles.FindAsync(newX, newY);
             if (destinationTuile == null) return BadRequest("La tuile de destination n'existe pas");
 
+            #region Logique de quetes
+            List<Quete> listQuest = GetQuestByType(TypeQuete.Destination, personnage).Result;
+            if (listQuest.Any())
+            {
+                foreach (Quete quete in listQuest)
+                {
+                    if (quete.Destination == destinationTuile)
+                    {
+                        // Modifie la quete
+                        _context.Remove(quete);
+                        quete.EstCompleter = true;
+                        _context.Add(quete);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+            #endregion
+
             var monstre = await GetMonsterAtPosition(newX, newY);
 
             if (!destinationTuile.EstTraversable)
@@ -168,6 +186,25 @@ namespace ApiV1ControlleurMonstre.Controllers
             int xpGagnee = monstre.Monstre.ExperienceBase + (monstre.Niveau * 10);
             personnage.Experience += xpGagnee;
 
+            List<Quete> listQuest = GetQuestByType(TypeQuete.Monstre, personnage).Result;
+            if (listQuest.Any())
+            {
+                foreach (Quete quete in listQuest)
+                {
+                    if (quete.TypeMonstre == monstre.Monstre.Type1 || quete.TypeMonstre == monstre.Monstre.Type2)
+                    {
+                        // Modifie la quete
+                        _context.Remove(quete);
+
+                        quete.NombreActuellementTuer++;
+                        if (quete.NombreATuer == quete.NombreActuellementTuer) quete.EstCompleter = true;
+
+                        _context.Add(quete);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+
             // Vérification du niveau
             HandleLevelUp(personnage);
 
@@ -182,10 +219,10 @@ namespace ApiV1ControlleurMonstre.Controllers
             return Ok(new
             {
                 message = "WonFight",
-            }); ;
+            });
         }
 
-        private void HandleLevelUp(Personnage personnage)
+        private async void HandleLevelUp(Personnage personnage)
         {
             while (personnage.Experience >= 100)
             {
@@ -195,6 +232,21 @@ namespace ApiV1ControlleurMonstre.Controllers
                 personnage.Defense++;
                 personnage.PointsVieMax++;
                 personnage.PointsVie = personnage.PointsVieMax;
+            }
+
+            List<Quete> listQuest = GetQuestByType(TypeQuete.Niveau, personnage).Result;
+            if (listQuest.Any())
+            {
+                foreach (Quete quete in listQuest)
+                {
+                    if (quete.NiveauSauvegarder + 1 == personnage.Niveau)
+                    {
+                        _context.Remove(quete);
+                        quete.EstCompleter = true;
+                        _context.Add(quete);
+                        await _context.SaveChangesAsync();
+                    }
+                }
             }
         }
 
@@ -224,7 +276,6 @@ namespace ApiV1ControlleurMonstre.Controllers
         {
             personnage.PositionX = newX;
             personnage.PositionY = newY;
-
             await SavePersonnageChanges(personnage);
             return Ok(new { message = "Moved" });
         }
@@ -253,6 +304,14 @@ namespace ApiV1ControlleurMonstre.Controllers
         private bool PersonnageExists(int id)
         {
             return _context.Personnages.Any(e => e.Id == id);
+        }
+
+        private async Task<List<Quete>> GetQuestByType(TypeQuete type, Personnage personnage)
+        {
+            return await _context.Quetes.Where(quete =>
+               quete.Personnage == personnage &&
+               quete.TypeQuete == TypeQuete.Monstre)
+               .ToListAsync();
         }
     }
 }
