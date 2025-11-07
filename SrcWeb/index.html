@@ -9,123 +9,114 @@
     <script src="js/map.js" defer></script>
     <script src="js/mouvement.js" defer></script>
     <script src="js/stats.js" defer></script>
+    <script src="js/tabs.js" defer></script>
   </head>
 
   <body>
-    <button id="logout-btn">Déconnexion</button>
-
     <div class="container">
       <h1>RPG Explorer</h1>
     </div>
 
     <div id="game-container" class="game-container">
-      <div id="settings">
-        <div class="container settings-tuile">
-          <p class="title">Information</p>
-          <hr />
-          <p>Taille du monde: 50x50</p>
-          <p>Zone affichée: 5x5</p>
-          <p>Status API: Connecté</p>
-          <p>Tuiles chargées: 0</p>
-        </div>
-        <div class="container settings-tuile">
-          <p class="title">Navigation</p>
-          <hr />
-          <div class="controls">
-            <button id="up-btn">↑ Haut</button>
-            <div class="horizontal-controls">
-              <button id="left-btn">← Gauche</button>
-              <button id="right-btn">Droite →</button>
+      <!-- Interface simplifiée -->
+      <div class="game-interface">
+        <!-- Zone de jeu principale avec contrôles à gauche -->
+        <div class="main-game-area">
+          <!-- Panneau de contrôles et stats à gauche -->
+          <div class="left-controls-panel">
+            <div class="controls-section">
+              <h4>🎮 Contrôles</h4>
+              <div class="movement-controls">
+                <button id="up-btn">↑</button>
+                <div class="horizontal-controls">
+                  <button id="left-btn">←</button>
+                  <button id="right-btn">→</button>
+                </div>
+                <button id="down-btn">↓</button>
+              </div>
             </div>
-            <button id="down-btn">↓ Bas</button>
-          </div>
-        </div>
-        <div class="container settings-tuile">
-          <p class="title">Légende</p>
-          <hr />
-          <div class="legend-item">
-            <div class="legend-color default-tile"></div>
-            <p>Tuile standard</p>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color loaded-tile"></div>
-            <p>Tuile chargée</p>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color selected-tile"></div>
-            <p>Tuile sélectionnée</p>
-          </div>
-        </div>
-        <div class="container settings-tuile">
-          <p class="title">Tuile sélectionnée</p>
-          <hr />
-          <div class="coord-display">
-            <p>Coordonnées (x, y):</p>
-            <p id="coord-sel">-</p>
-          </div>
-          <div class="coord-display">
-            <p>Type de tuile:</p>
-            <p id="tuile-type"></p>
-          </div>
-          <div class="coord-display">
-            <p>Est traversable:</p>
-            <p id="is-traversable"></p>
-          </div>
-          <div class="coord-display">
-            <p id="coord"></p>
-          </div>
-        </div>
-      </div>
 
-      <div id="map" class="container">
-        <div class="map">
-          <div id="grid-container" class="map-container"></div>
-        </div>
-      </div>
-      <div class="d-grid">
-        <div id="player-stats" class="container settings-tuile">
-          <p class="title">Statistiques Joueur</p>
-          <hr />
-          <p>PV : <span id="stat-hp">0/0</span></p>
-          <p>Niveau : <span id="stat-level">0</span></p>
-          <p>XP : <span id="stat-xp">0</span></p>
-          <p>Force : <span id="stat-str">0</span></p>
-          <p>Défense : <span id="stat-def">0</span></p>
-        </div>
-        <div class="container settings-tuile">
-          <p class="title">Monstre sélectionnée</p>
-          <hr />
-          <div class="coord-display">
-            <p>Nom: </p>
-            <p id="monstre-nom"></p>
+            <div class="actions-section">
+              <h4>⚡ Actions Rapides</h4>
+              <div class="actions-buttons">
+                <button class="action-btn" onclick="showStats()">📊 Stats</button>
+                <button class="action-btn" onclick="showQuests()">📋 Quêtes</button>
+                <button class="action-btn" onclick="showMap()">�️ Carte</button>
+              </div>
+            </div>
+
+            <div class="combat-section">
+              <h4>⚔️ Combat</h4>
+              <div class="combat-buttons">
+                <button class="action-btn combat-btn" onclick="showCombatSimulator()">🎯 Simulateur</button>
+              </div>
+            </div>
+
+            <div class="system-section">
+              <h4>⚙️ Système</h4>
+              <div class="system-buttons">
+                <button id="logout-btn" class="logout-btn">🚪 Déconnexion</button>
+              </div>
+            </div>
           </div>
-          <div class="coord-display">
-            <p>PV:</p>
-            <p id="monstre-pv"></p>
-          </div>
-          <div class="coord-display">
-            <p>Force</p>
-            <p id="monstre-force"></p>
-          </div>
-          <div class="coord-display">
-            <p>Defense:</p>
-            <p id="monstre-defense"></p>
-          </div>
-          <div class="coord-display">
-            <p>Niveau:</p>
-            <p id="monstre-niveau"></p>
-          </div>
-          <div class="coord-display">
-            <p>XP</p>
-            <p id="monstre-xp"></p>
-          </div>
-          <div class="coord-display">
-            <p>Type #1:</p>
-            <p id="monstre-type1"></p>
-          </div>
-          <div class="coord-display" id="type-2">
-            <p>Type #2: </p>
-            <p id="monstre-type2"></p>
+
+          <!-- Carte de jeu -->
+          <div class="game-map-area">
+            <div id="map" class="map-container-main">
+              <div class="map">
+                <div id="grid-container" class="map-container"></div>
+              </div>
+            </div>
+            
+            <!-- Panneau d'informations contextuel (affiché seulement si nécessaire) -->
+            <div id="info-overlay" class="info-overlay hidden">
+              <div class="info-content">
+                <div class="info-header">
+                  <h4 id="info-title">Informations</h4>
+                  <button class="close-btn" onclick="hideInfoOverlay()">×</button>
+                </div>
+                <div id="info-body" class="info-body">
+                  <!-- Contenu dynamique -->
+                  <div id="monstre-info" class="monstre-info" style="display: none;">
+                    <h5>🐉 Monstre</h5>
+                    <div class="monstre-details">
+                      <div class="stat-row">
+                        <span>Nom:</span>
+                        <span id="monstre-nom"></span>
+                      </div>
+                      <div class="stat-row">
+                        <span>PV:</span>
+                        <span id="monstre-pv"></span>
+                      </div>
+                      <div class="stat-row">
+                        <span>Force:</span>
+                        <span id="monstre-force"></span>
+                      </div>
+                      <div class="stat-row">
+                        <span>Défense:</span>
+                        <span id="monstre-defense"></span>
+                      </div>
+                      <div class="stat-row">
+                        <span>Niveau:</span>
+                        <span id="monstre-niveau"></span>
+                      </div>
+                      <div class="stat-row">
+                        <span>XP:</span>
+                        <span id="monstre-xp"></span>
+                      </div>
+                      <div class="stat-row">
+                        <span>Type 1:</span>
+                        <span id="monstre-type1"></span>
+                      </div>
+                      <div class="stat-row">
+                        <span>Type 2:</span>
+                        <span id="monstre-type2"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

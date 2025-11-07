@@ -1,17 +1,3 @@
-setPersonnage();
-
-async function setPersonnage() {
-  const personnage = await callAPI(`Personnages/GetPersonnageFromUser/`, "GET");
-  posX = personnage["positionX"];
-  posY = personnage["positionY"];
-  document.getElementById("stat-hp").innerHTML =
-    personnage["pointsVie"] + "/" + personnage["pointsVieMax"];
-  document.getElementById("stat-level").innerHTML = personnage["niveau"];
-  document.getElementById("stat-xp").innerHTML = personnage["experience"];
-  document.getElementById("stat-str").innerHTML = personnage["force"];
-  document.getElementById("stat-def").innerHTML = personnage["defense"];
-}
-
 async function setInfoMonster(monstre) {
   document.getElementById("monstre-nom").innerHTML = monstre.nom;
   document.getElementById("monstre-pv").innerHTML =

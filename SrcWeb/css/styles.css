@@ -6,18 +6,21 @@
     box-sizing: border-box;
 }
 
-/* Règle spécifique pour le bouton logout - priorité absolue */
-button#logout-btn {
-    position: fixed !important;
-    top: 20px !important;
-    left: 20px !important;
-    right: auto !important;
-    margin: 0 !important;
-    z-index: 9999 !important;
-    display: none !important; /* Caché par défaut */
+/* Règle spécifique pour le bouton logout - pr.controls-section, .stats-section, .world-section, .actions-section, .combat-section, .system-section {
+    background: rgba(66, 65, 77, 0.9);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(100, 181, 246, 0.2);
 }
 
+.controls-section h4, .stats-section h4, .world-section h4, .actions-section h4, .combat-section h4, .system-section h4 {
+    color: #64b5f6;
+    margin: 0 0 0.8rem 0;
+    font-size: 0.95rem;
+    font-weight: bold;
+}
 
+/* Styles généraux */
 body {
     background: linear-gradient(135deg, #1a1a2e, #2d2d44);
     min-height: 100vh;
@@ -43,11 +46,11 @@ h1{
 
 .game-container {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
     margin-top: 1rem;
     width: 100%;
     min-height: 600px;
-    align-items: flex-start;
 }
 
 
@@ -176,23 +179,376 @@ input, select, textarea{
     text-align: center;
 }
 
-#map {
+/* Interface épurée et simplifiée */
+
+.game-interface {
     display: flex;
-    flex: 1;
-    width: 66.666%;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 600px;
-    padding: 0;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 800px;
+    gap: 0.8rem;
 }
 
-#map {
-    width: 66.666%; /* 2/3 de l'écran */
+/* Zone principale avec panneau à gauche */
+.main-game-area {
+    display: flex;
+    flex: 1;
+    gap: 1rem;
+}
+
+/* Panneau de contrôles à gauche */
+.left-controls-panel {
+    width: 250px;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100vh;
+}
+
+.controls-section, .stats-section, .world-section, .actions-section, .combat-section, .system-section {
+    background: rgba(66, 65, 77, 0.9);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(100, 181, 246, 0.2);
+}
+
+.controls-section h4, .stats-section h4, .world-section h4, .actions-section h4, .combat-section h4, .system-section h4 {
+    color: #64b5f6;
+    margin: 0 0 0.8rem 0;
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+
+.movement-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.horizontal-controls {
+    display: flex;
+    gap: 0.8rem;
+}
+
+#up-btn, #down-btn, #left-btn, #right-btn {
+    background: rgba(100, 181, 246, 0.15);
+    border: 1px solid rgba(100, 181, 246, 0.4);
+    color: white;
+    font-weight: bold;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.2rem;
+    min-width: 60px;
+}
+
+#up-btn:hover, #down-btn:hover, #left-btn:hover, #right-btn:hover {
+    background: rgba(100, 181, 246, 0.3);
+    border-color: #64b5f6;
+    transform: translateY(-1px);
+}
+
+.player-stats, .world-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-row span:first-child {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.stat-row span:last-child {
+    color: #64b5f6;
+    font-weight: bold;
+}
+
+/* Actions rapides dans le panneau gauche */
+.actions-buttons, .combat-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.actions-section .action-btn, .combat-section .action-btn {
+    background: rgba(100, 181, 246, 0.1);
+    border: 1px solid rgba(100, 181, 246, 0.3);
+    color: white;
+    padding: 0.7rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.actions-section .action-btn:hover, .combat-section .action-btn:hover {
+    background: rgba(100, 181, 246, 0.25);
+    border-color: rgba(100, 181, 246, 0.5);
+    transform: translateX(2px);
+}
+
+.actions-section .action-btn:active, .combat-section .action-btn:active {
+    transform: translateX(1px);
+}
+
+/* Bouton combat spécial */
+.combat-btn {
+    background: rgba(255, 193, 7, 0.1) !important;
+    border: 1px solid rgba(255, 193, 7, 0.3) !important;
+    color: #ffc107 !important;
+}
+
+.combat-btn:hover {
+    background: rgba(255, 193, 7, 0.25) !important;
+    border-color: rgba(255, 193, 7, 0.5) !important;
+}
+
+/* Zone de la carte */
+.game-map-area {
+    position: relative;
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 600px; /* Changer height: 100% en min-height */
+}
+
+/* Styles spécifiques pour le contenu des quêtes */
+#quests-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.quest-item {
+    background: rgba(45, 45, 68, 0.6);
+    border: 1px solid rgba(100, 181, 246, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.quest-item:hover {
+    background: rgba(45, 45, 68, 0.8);
+    border-color: rgba(100, 181, 246, 0.5);
+}
+
+.quest-title {
+    font-weight: bold;
+    color: #64b5f6;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.quest-type {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(100, 181, 246, 0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.quest-progress {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.quest-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(45, 45, 68, 0.8);
+    border-radius: 3px;
+    margin-top: 0.3rem;
+    overflow: hidden;
+}
+
+.quest-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #64b5f6, #5a9ed8);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.no-quests {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    padding: 2rem;
+}
+
+.quest-completed {
+    opacity: 0.7;
+    background: rgba(45, 68, 45, 0.6) !important;
+    border-color: rgba(76, 175, 80, 0.5) !important;
+}
+
+.quest-completed .quest-title {
+    color: #4caf50 !important;
+    text-decoration: line-through;
+}
+
+.quest-completed .quest-progress-fill {
+    background: linear-gradient(90deg, #4caf50, #66bb6a) !important;
+}
+
+.quest-description {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+/* Carte - zone principale */
+.map-container-main {
+    background: rgba(66, 65, 77, 0.9);
+    border-radius: 10px;
+    border: 1px solid rgba(100, 181, 246, 0.2);
+    padding: 0.5rem;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Overlay d'informations (affiché à la demande) */
+.info-overlay {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(66, 65, 77, 0.95);
+    border: 1px solid rgba(100, 181, 246, 0.4);
+    border-radius: 8px;
+    min-width: 280px;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+
+.info-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(20px);
+}
+
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    background: rgba(45, 45, 68, 0.8);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid rgba(100, 181, 246, 0.3);
+}
+
+.info-header h4 {
+    color: #64b5f6;
+    margin: 0;
+    font-size: 1rem;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.info-body {
+    padding: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Barre d'action en bas - simplifiée pour afficher seulement la quête active */
+.action-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(66, 65, 77, 0.9);
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    border: 1px solid rgba(100, 181, 246, 0.2);
+}
+
+.current-quest {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(45, 45, 68, 0.6);
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(100, 181, 246, 0.2);
+    max-width: 400px;
+    min-width: 250px;
+    justify-content: center;
+}
+
+.quest-icon {
+    font-size: 1.1rem;
+}
+
+.quest-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Styles pour les données dynamiques dans l'overlay */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row span:first-child {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.info-row span:last-child {
+    color: #64b5f6;
+    font-weight: bold;
 }
 
 .map {
@@ -396,57 +752,248 @@ td p {
     background: #cc3333;
 }
 
-/* Responsive */
+/* Responsive pour l'interface avec panneau à gauche */
 @media (max-width: 768px) {
-    body {
-        overflow: auto; /* Réactive le scroll sur mobile */
+    .game-interface {
+        height: 100vh;
+        gap: 0.5rem;
     }
     
-    .game-container {
+    .main-game-area {
         flex-direction: column;
-        height: auto;
+        gap: 0.5rem;
     }
     
-    #settings {
+    .left-controls-panel {
         width: 100%;
         min-width: auto;
-        height: auto;
+        flex-direction: row;
+        gap: 0.5rem;
+        order: 1;
     }
     
-    #map {
+    .controls-section {
+        flex: 1;
+    }
+    
+    .stats-section, .world-section {
+        flex: 1;
+    }
+    
+    .actions-section {
         width: 100%;
-        height: 60vh;
+        order: 3;
+    }
+    
+    .actions-buttons {
+        flex-direction: row;
+        gap: 0.3rem;
+    }
+    
+    .actions-section .action-btn {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+    
+    .game-map-area {
+        order: 2;
+        flex: 1;
+        min-height: 400px;
+    }
+    
+    .controls-section h4, .stats-section h4, .world-section h4 {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .movement-controls {
+        gap: 0.3rem;
+    }
+    
+    /* Contrôles plus grands sur mobile */
+    #up-btn, #down-btn, #left-btn, #right-btn {
+        padding: 0.6rem 0.8rem;
+        min-width: 45px;
+        font-size: 1.1rem;
+    }
+    
+    .horizontal-controls {
+        gap: 0.6rem;
+    }
+    
+    .stat-row {
+        font-size: 0.85rem;
+        padding: 0.3rem 0;
+    }
+    
+    /* Info overlay adapté mobile */
+    .info-overlay {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: none;
+        max-height: 80vh;
+        min-width: auto;
+    }
+    
+    .info-overlay.hidden {
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    
+    /* Barre d'action adaptée */
+    .action-bar {
+        flex-direction: column;
+        gap: 0.8rem;
+        padding: 1rem;
+    }
+    
+    .quick-actions {
+        order: 2;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .current-quest {
+        order: 1;
+        max-width: none;
+        justify-content: center;
+    }
+    
+    .action-btn {
+        padding: 0.8rem;
+        min-width: 60px;
+        font-size: 1.2rem;
     }
 }
 
-/* Bouton Déconnexion - Position fixe en haut à gauche */
-button#logout-btn {
-  position: fixed !important;
-  top: 20px !important;
-  left: 20px !important;
-  right: auto !important;
-  bottom: auto !important;
-  margin: 0 !important;
-  transform: none !important;
-  background: linear-gradient(45deg, #ff4444, #cc3333) !important;
-  color: white !important;
-  border: none !important;
-  padding: 0.8rem 1rem !important;
-  font-size: 1rem !important;
-  font-weight: bold !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  z-index: 9999 !important;
-  width: auto !important;
-  min-width: 120px !important;
-  display: block !important;
-  float: none !important;
-  text-align: center !important;
+@media (max-width: 480px) {
+    .game-interface {
+        gap: 0.3rem;
+    }
+    
+    .top-controls, .action-bar {
+        padding: 0.8rem;
+    }
+    
+    .essential-stats {
+        gap: 0.8rem;
+    }
+    
+    .stat-item {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .info-overlay {
+        width: 95%;
+        max-height: 85vh;
+    }
+    
+    .info-body {
+        padding: 0.8rem;
+        max-height: 250px;
+    }
 }
 
-button#logout-btn:hover {
-  background: linear-gradient(45deg, #cc3333, #aa2222) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 8px rgba(204,34,34,0.4) !important;
+/* Sections info dans le panneau gauche */
+.stats-info, .world-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+}
+
+.stat-row span:first-child {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+.stat-row span:last-child {
+    color: #64b5f6;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Informations de monstre dans l'overlay */
+.monstre-info {
+    margin-top: 1rem;
+}
+
+.monstre-info h5 {
+    color: #ff9800;
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+}
+
+.monstre-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.monstre-details .stat-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.4rem 0;
+}
+
+/* Nouveaux styles pour les sections combat et système */
+.combat-section, .system-section {
+    margin-bottom: 1rem;
+}
+
+.system-section {
+    margin-top: auto;
+    margin-bottom: 0;
+    border-top: 2px solid rgba(100, 181, 246, 0.3);
+    background: rgba(66, 65, 77, 0.7) !important;
+}
+
+.logout-btn {
+    background: rgba(244, 67, 54, 0.1) !important;
+    border: 1px solid rgba(244, 67, 54, 0.3) !important;
+    color: #f44336 !important;
+    padding: 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.logout-btn:hover {
+    background: rgba(244, 67, 54, 0.25) !important;
+    border-color: rgba(244, 67, 54, 0.5) !important;
+    transform: translateY(-1px);
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+}
+
+/* Icônes pour les boutons */
+.action-btn::before, .combat-btn::before, .logout-btn::before {
+    font-size: 1rem;
+}
+
+.combat-btn::before {
+    content: "⚔️";
+}
+
+.logout-btn::before {
+    content: "🚪";
 }

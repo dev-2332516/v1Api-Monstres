@@ -1,11 +1,8 @@
-createGrid();
-
 // GetTile: save fetched tile into mapArray
 async function GetTile(x, y, td) {
   try {
     // Remove the inner text from TD
     td.innerHTML = "";
-    console.log(`Fetching tile at (${x}, ${y})`);
     const tile = await callAPI(`Tuiles/GetOrCreateTuile/${x}/${y}`, "GET");
     // update gameGrid (y-index then x-index)
     // gameGrid[y - (posY - 2)][x - (posX - 2)] = tile;
@@ -43,9 +40,9 @@ async function GetTile(x, y, td) {
 }
 
 function showCoordinates(c, r) {
-  const coord = document.getElementById("coord");
-  coord.innerText = "";
-  coord.innerHTML = c + ", " + r;
+  // Sauvegarder les coordonnées actuelles pour d'autres usages
+  window.currentCoords = { x: c, y: r };
+  console.log(`Position actuelle: ${c}, ${r}`);
 }
 
 // Crée la grille de jeu 5x5 et mettre les tuiles aux bonnes positions dans gameGrid sans afficher
@@ -205,15 +202,27 @@ function setTileWithCoords(x, y, tileToSet) {
 
 async function getInfoTile(x, y) {
   const tempTile = await getTileWithCoords(x, y);
-  document.getElementById("coord-sel").innerHTML =
-    tempTile["positionX"] + "," + tempTile["positionY"];
-  document.getElementById("tuile-type").innerHTML = tempTile.typeTuile;
-  document.getElementById("is-traversable").innerHTML =
-    tempTile["estTraversable"];
-  if (tempTile.monstre) {
-    setInfoMonster(tempTile.monstre);
-  } else {
-    clearInfoMonster();
+  
+  if (tempTile) {
+    // Utiliser la nouvelle interface d'overlay pour afficher les informations
+    if (window.gameInterface) {
+      if (tempTile.monstre) {
+        // Afficher les informations du monstre
+        window.gameInterface.showMonsterInfo(tempTile.monstre);
+      } else {
+        // Afficher les informations de la tuile
+        window.gameInterface.showTileInfo(
+          tempTile.positionX, 
+          tempTile.positionY, 
+          tempTile.typeTuile, 
+          tempTile.estTraversable
+        );
+      }
+    }
+    
+    // Sauvegarder les coordonnées pour d'autres usages
+    window.currentCoords = { x: tempTile.positionX, y: tempTile.positionY };
+    console.log(`Position mise à jour: ${tempTile.positionX}, ${tempTile.positionY}`);
   }
 }
 

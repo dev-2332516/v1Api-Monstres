@@ -12,6 +12,7 @@ function updateUIBasedOnAuth() {
     // Utilisateur connecté : cacher le formulaire, afficher le jeu et le bouton logout
     document.getElementById("auth-container").style.display = "none";
     document.getElementById("game-container").style.display = "flex";
+    createGrid();
     if (logoutBtn) {
       logoutBtn.style.display = "block";
     }
@@ -26,29 +27,29 @@ function updateUIBasedOnAuth() {
 }
 
 
-// Gestionnaire de logout
-document.getElementById("logout-btn").addEventListener("click", async () => {
-  try {
-    // Supprimer le token du localStorage
-    localStorage.removeItem("jwtToken");
-
-    // Mettre à jour l'UI : masquer le jeu, afficher le formulaire de connexion
-    updateUIBasedOnAuth();
-
-    // Réinitialiser les messages
-    document.getElementById("login-message").textContent = "";
-    if (document.getElementById("register-message")) {
-      document.getElementById("register-message").textContent = "";
-    }
-
-    console.log("Déconnexion réussie");
-  } catch (err) {
-    console.error("Erreur lors de la déconnexion:", err);
-    alert("Impossible de se déconnecter.");
-  }
-});
-
 document.addEventListener("DOMContentLoaded", () => {
+  // Gestionnaire de logout
+  const logoutBtnElement = document.getElementById("logout-btn");
+  if (logoutBtnElement) {
+    logoutBtnElement.addEventListener("click", async () => {
+      try {
+        // Supprimer le token du localStorage
+        localStorage.removeItem("jwtToken");
+
+        // Mettre à jour l'UI : masquer le jeu, afficher le formulaire de connexion
+        updateUIBasedOnAuth();
+
+        // Réinitialiser les messages
+        document.getElementById("login-message").textContent = "";
+        if (document.getElementById("register-message")) {
+          document.getElementById("register-message").textContent = "";
+        }
+      } catch (err) {
+        alert("Impossible de se déconnecter.");
+      }
+    });
+  }
+
   // Gestion du formulaire de connexion
   const loginForm = document.getElementById("login-form");
   if (loginForm) {
@@ -76,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
           updateUIBasedOnAuth();
           document.getElementById("login-message").textContent =
             "Connexion réussie !";
+            createGrid();
         } else {
           const errorText = await response.text();
           document.getElementById("login-message").textContent =

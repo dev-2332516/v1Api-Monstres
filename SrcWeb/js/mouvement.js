@@ -31,9 +31,21 @@ async function moveGrid(direction) {
         if (deleteMonstre) {
           let monstreTuer = mapArray[posX][posY].monstre;
           showErrorPopup(`Vous avez tuer ${monstreTuer.nom} !`);
+          
+          // Vérifier les quêtes de monstres
+          if (window.questsManager) {
+            window.questsManager.checkMonsterQuests(monstreTuer.type1 || monstreTuer.nom);
+          }
+          
           mapArray[posX][posY].monstre = null;
           deleteMonstre = false;
         }
+        
+        // Vérifier les quêtes de destination
+        if (window.questsManager) {
+          window.questsManager.checkLocationQuests(posX, posY);
+        }
+        
         await displayGameGrid();
       } else if (isDefeated && !isIndecis) {
         setPersonnage();
