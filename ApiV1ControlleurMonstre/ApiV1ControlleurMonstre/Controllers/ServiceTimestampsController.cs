@@ -10,6 +10,8 @@ using ApiV1ControlleurMonstre.Models;
 
 namespace ApiV1ControlleurMonstre.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class ServiceTimestampsController : Controller
     {
         private readonly MonsterContext _context;
@@ -19,11 +21,7 @@ namespace ApiV1ControlleurMonstre.Controllers
             _context = context;
         }
 
-        // POST: ServiceTimestamps/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpGet("GetTimestamp")]
-        [ValidateAntiForgeryToken]
+        [HttpGet("GetTimestamp/")]
         public async Task<ActionResult<long>> GetTimestamp()
         {
             try

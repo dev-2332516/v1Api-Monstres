@@ -46,6 +46,7 @@ namespace ApiV1ControlleurMonstre
             });
 
             builder.Services.AddHostedService<MonstreMaintenanceService>();
+            builder.Services.AddHostedService<QueteService>();
 
             // 3. Autres services
             builder.Services.AddCors(opt =>

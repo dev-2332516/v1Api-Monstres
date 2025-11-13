@@ -93,7 +93,7 @@ namespace ApiV1ControlleurMonstre.Services
 
         protected async  override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            TimeSpan _checkInterval = TimeSpan.FromMinutes(10); // Check every 30 minutes
+            TimeSpan _checkInterval = TimeSpan.FromMinutes(1); // Check every 10 minutes
 
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<MonsterContext>();
@@ -104,7 +104,7 @@ namespace ApiV1ControlleurMonstre.Services
                 {
                     // Set le prochain timestamp
                     ServiceTimestamp serviceTimestamp = new ServiceTimestamp();
-                    serviceTimestamp.Timestamp = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() + 600;
+                    serviceTimestamp.Timestamp = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() + 60;
 
                     context.ServiceTimestamps.Add(serviceTimestamp);
                     await context.SaveChangesAsync();

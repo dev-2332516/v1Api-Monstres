@@ -136,6 +136,8 @@ async function displayGameGrid() {
     for (let y = -2; y <= 2; y++) {
       const worldX = posX + x;
       const worldY = posY + y;
+      let tile = null; // Initialiser tile pour chaque itération
+      
       // check si la map à déjà la tile demandé
       if (
         worldX >= 1 &&

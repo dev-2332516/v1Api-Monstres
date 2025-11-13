@@ -10,6 +10,8 @@ using ApiV1ControlleurMonstre.Models;
 
 namespace ApiV1ControlleurMonstre.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class QuetesController : Controller
     {
         private readonly MonsterContext _context;

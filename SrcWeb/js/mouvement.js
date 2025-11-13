@@ -47,12 +47,19 @@ async function moveGrid(direction) {
         }
         
         await displayGameGrid();
+        
+        // Mettre à jour les infos si elles sont affichées (stats, carte, etc.)
+        if (window.updateInfoIfVisible) {
+          await window.updateInfoIfVisible();
+        }
       } else if (isDefeated && !isIndecis) {
-        setPersonnage();
         createGrid();
+        // Mettre à jour les infos si elles sont affichées (stats, carte, etc.)
+        if (window.updateInfoIfVisible) {
+          await window.updateInfoIfVisible();
+        }
       } else if (isDefeated && isIndecis) {
         showErrorPopup("Indécis");
-        setPersonnage();
         let tempX = posX, tempY = posY;
         if (direction == "up") tempY--;
         if (direction == "down") tempY++;
@@ -63,11 +70,14 @@ async function moveGrid(direction) {
         let tempTile = getTileWithCoords(tempX, tempY);
         tempTile.monstre.pointsVieActuels = monstreBougerData;
         setTileWithCoords(tempX, tempY, tempTile);
+        // Mettre à jour les infos si elles sont affichées (stats, carte, etc.)
+        if (window.updateInfoIfVisible) {
+          await window.updateInfoIfVisible();
+        }
       }
     }
   } catch (error) {
     console.error("Error moving grid:", error);
-    showErrorPopup("Failed to move grid");
   }
 }
 

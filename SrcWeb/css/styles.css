@@ -23,9 +23,11 @@
 /* Styles généraux */
 body {
     background: linear-gradient(135deg, #1a1a2e, #2d2d44);
-    min-height: 100vh;
+    height: 100vh;
+    margin: 0;
     padding: 1rem;
-    /* overflow: hidden; */ /* Empêche le scroll de la page */
+    overflow: hidden; /* Empêche le scroll de la page */
+    box-sizing: border-box;
 }
 
 
@@ -185,7 +187,8 @@ input, select, textarea{
     display: flex;
     flex-direction: column;
     height: 100vh;
-    max-height: 800px;
+    max-height: 100vh;
+    overflow: hidden;
     gap: 0.8rem;
 }
 
@@ -194,6 +197,8 @@ input, select, textarea{
     display: flex;
     flex: 1;
     gap: 1rem;
+    height: calc(100vh - 80px);
+    overflow: hidden;
 }
 
 /* Panneau de contrôles à gauche */
@@ -203,7 +208,10 @@ input, select, textarea{
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    height: 100vh;
+    height: 100%;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
 }
 
 .controls-section, .stats-section, .world-section, .actions-section, .combat-section, .system-section {
@@ -332,6 +340,9 @@ input, select, textarea{
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
+    max-height: calc(100vh - 80px);
+    overflow: hidden;
 }
 
 /* Styles spécifiques pour le contenu des quêtes */
@@ -996,4 +1007,169 @@ td p {
 
 .logout-btn::before {
     content: "🚪";
+}
+
+/* Bouton déconnexion en haut à droite */
+.logout-btn-top-right {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: rgba(244, 67, 54, 0.1) !important;
+    border: 1px solid rgba(244, 67, 54, 0.3) !important;
+    color: #f44336 !important;
+    padding: 0.8rem 1rem !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    z-index: 10000 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin: 0 !important;
+    transform: none !important;
+}
+
+.logout-btn-top-right:hover {
+    background: rgba(244, 67, 54, 0.25) !important;
+    border-color: rgba(244, 67, 54, 0.5) !important;
+    transform: translateY(-1px);
+}
+
+.logout-btn-top-right:active {
+    transform: translateY(0);
+}
+
+.logout-btn-top-right::before {
+    content: "🚪";
+    font-size: 1rem;
+}
+
+/* === Système de notifications Toast === */
+.notification-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 10000;
+    max-width: 350px;
+    pointer-events: none;
+}
+
+.notification {
+    background: rgba(66, 65, 77, 0.95);
+    border: 2px solid #64b5f6;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: auto;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification.hide {
+    transform: translateX(400px);
+    opacity: 0;
+}
+
+.notification::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--notification-color, #64b5f6);
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.notification-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.notification-icon {
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.notification-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.notification-message {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.notification.success {
+    --notification-color: #4caf50;
+    border-color: #4caf50;
+}
+
+.notification.error {
+    --notification-color: #f44336;
+    border-color: #f44336;
+}
+
+.notification.combat {
+    --notification-color: #e91e63;
+    border-color: #e91e63;
+}
+
+.notification.info {
+    --notification-color: #2196f3;
+    border-color: #2196f3;
+}
+
+@media (max-width: 480px) {
+    .notification-container {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
 }
