@@ -72,6 +72,28 @@ async function updateInfoIfVisible() {
     if (title.textContent === "📊 Statistiques du Joueur") await showStats();
     else if (title.textContent === "🗺️ Informations Carte") showMap();
     else if (title.textContent === "📋 Quêtes Actives") await showQuests();
+    else if (title.textContent === "👹 Informations Monstre") await updateMonsterInfo();
+  }
+}
+
+async function updateMonsterInfo() {
+  try {
+    // Récupérer la position actuelle du joueur
+    const coords = window.currentCoords;
+    if (!coords) return;
+    
+    // Récupérer les informations de la tuile actuelle
+    if (window.getTileWithCoords) {
+      const currentTile = await window.getTileWithCoords(coords.x, coords.y);
+      if (currentTile && currentTile.monstre) {
+        showMonsterInfo(currentTile.monstre);
+      } else {
+        // Plus de monstre sur cette tuile, fermer l'overlay
+        hideInfoOverlay();
+      }
+    }
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des informations du monstre:", error);
   }
 }
 
@@ -260,6 +282,14 @@ function showMonsterInfo(monster) {
       <span>Défense:</span>
       <span>${monster.defense || 0}</span>
     </div>
+    <div class="info-row">
+      <span>Type1:</span>
+      <span>${monster.type1 || "Aucun"}</span>
+    </div>
+    <div class="info-row">
+      <span>Type2:</span>
+      <span>${monster.type2 || "Aucun"}</span>
+    </div>
   `;
   showInfoOverlay("👹 Informations Monstre", monsterContent);
 }
@@ -274,4 +304,5 @@ window.gameInterface = {
 // Exposition des fonctions de mise à jour
 window.updateInfoIfVisible = updateInfoIfVisible;
 window.updateQuestsIfVisible = updateQuestsIfVisible;
+window.updateMonsterInfo = updateMonsterInfo;
 window.scheduleQuestUpdate = scheduleQuestUpdate;

@@ -112,19 +112,25 @@ namespace ApiV1ControlleurMonstre.Controllers
             switch (direction.ToLower())
             {
                 case "up":
-                    if (personnage.PositionY > 0) newY = personnage.PositionY - 1;
+                    newY = personnage.PositionY - 1;
                     break;
                 case "down":
-                    if (personnage.PositionY < 50) newY = personnage.PositionY + 1;
+                    newY = personnage.PositionY + 1;
                     break;
                 case "left":
-                    if (personnage.PositionX > 0) newX = personnage.PositionX - 1;
+                    newX = personnage.PositionX - 1;
                     break;
                 case "right":
-                    if (personnage.PositionX < 50) newX = personnage.PositionX + 1;
+                    newX = personnage.PositionX + 1;
                     break;
                 default:
                     return (-1, -1); // Valeur d'erreur
+            }
+
+            // Vérification finale des limites de la carte (0 à 50)
+            if (newX < 0 || newX > 50 || newY < 0 || newY > 50)
+            {
+                return (-1, -1); // Mouvement invalide
             }
 
             return (newX, newY);

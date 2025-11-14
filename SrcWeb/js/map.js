@@ -235,3 +235,6 @@ function GetInfoTileClick(x, y) {
 function getTileClick(x, y) {
   GetTile(x, y);
 }
+
+// Exposer les fonctions nécessaires
+window.getTileWithCoords = getTileWithCoords;

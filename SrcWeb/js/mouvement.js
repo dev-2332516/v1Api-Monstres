@@ -17,28 +17,58 @@ let monstreBougerData;
 // Bouge la grid selon la direction donnée
 async function moveGrid(direction) {
   try {
+    // Vérifier les limites de la carte AVANT d'essayer de bouger
+    let nextX = posX, nextY = posY;
+    if (direction == "up") nextY--;
+    if (direction == "down") nextY++;
+    if (direction == "left") nextX--;
+    if (direction == "right") nextX++;
+    
+    // Empêcher le mouvement hors limites (carte de 0 à 50)
+    if (nextX < 0 || nextX > 50 || nextY < 0 || nextY > 50) {
+      showErrorPopup("Vous ne pouvez pas aller plus loin dans cette direction !");
+      return;
+    }
+    
     // Movement réel
     if (await movePersonnage(direction)) {
       if (!isDefeated) {
+        // Calculer la position cible avant le mouvement
+        let targetX = posX, targetY = posY;
+        if (direction == "up") targetY--;
+        if (direction == "down") targetY++;
+        if (direction == "left") targetX--;
+        if (direction == "right") targetX++;
+        
+        // Si on doit supprimer un monstre, le faire AVANT de bouger
+        if (deleteMonstre) {
+          // Ajuster les indices pour mapArray (base 0 vs position base 1)
+          let arrayX = targetX - 1;
+          let arrayY = targetY - 1;
+          
+          let monstreTuer = mapArray[arrayX] && mapArray[arrayX][arrayY] ? mapArray[arrayX][arrayY].monstre : null;
+          if (monstreTuer) {
+            showErrorPopup(`Vous avez tuer ${monstreTuer.nom} !`);
+            
+            // Vérifier les quêtes de monstres
+            if (window.questsManager) {
+              window.questsManager.checkMonsterQuests(monstreTuer.type1 || monstreTuer.nom);
+            }
+            
+            mapArray[arrayX][arrayY].monstre = null;
+          }
+          deleteMonstre = false;
+        }
+        
+        // Maintenant effectuer le mouvement
         if (direction == "up") posY--;
         if (direction == "down") posY++;
         if (direction == "left") posX--;
         if (direction == "right") posX++;
+        
         await shiftTable(direction);
         if ((posY < 49 && posY > 1) || (posX < 49 && posX > 1)) {
           await getNewLines(direction);
-        }
-        if (deleteMonstre) {
-          let monstreTuer = mapArray[posX][posY].monstre;
-          showErrorPopup(`Vous avez tuer ${monstreTuer.nom} !`);
-          
-          // Vérifier les quêtes de monstres
-          if (window.questsManager) {
-            window.questsManager.checkMonsterQuests(monstreTuer.type1 || monstreTuer.nom);
-          }
-          
-          mapArray[posX][posY].monstre = null;
-          deleteMonstre = false;
         }
         
         // Vérifier les quêtes de destination
@@ -110,9 +140,13 @@ async function movePersonnage(direction) {
     }
     if ((await dataParsed.message) == "WonFight") {
       deleteMonstre = true;
+      isDefeated = false;
+      isIndecis = false;
     }
     if ((await dataParsed.message) == "LostFight") {
+      deleteMonstre = false;
       isDefeated = true;
+      isIndecis = false;
     }
     if ((await dataParsed.message) == "Indecis") {
       deleteMonstre = false;
@@ -152,7 +186,21 @@ function shiftTable(direction) {
 // Get les nouvelles lignes selon la direction données
 async function getNewLines(direction) {
   const newTiles = await callAPI(`Tuiles/GetTuilesLine/${direction}`, "GET");
-  if (!mapArray[newTiles[0].positionX - 1][newTiles[0].positionY - 1]) mapArray[newTiles[0].positionX - 1][newTiles[0].positionY - 1] = newTiles[0];
-  if (!mapArray[newTiles[1].positionX - 1][newTiles[1].positionY - 1]) mapArray[newTiles[1].positionX - 1][newTiles[1].positionY - 1] = newTiles[1];
-  if (!mapArray[newTiles[2].positionX - 1][newTiles[2].positionY - 1]) mapArray[newTiles[2].positionX - 1][newTiles[2].positionY - 1] = newTiles[2];
+  
+  // Vérifier que newTiles existe et contient des données valides
+  if (!newTiles || !Array.isArray(newTiles) || newTiles.length === 0) {
+    return; // Pas de nouvelles tuiles à charger (probablement aux bordures)
+  }
+  
+  // Vérifier chaque tuile avant de l'ajouter
+  for (let i = 0; i < newTiles.length; i++) {
+    if (newTiles[i] && newTiles[i].positionX && newTiles[i].positionY) {
+      const arrayX = newTiles[i].positionX - 1;
+      const arrayY = newTiles[i].positionY - 1;
+      if (!mapArray[arrayX]) mapArray[arrayX] = [];
+      if (!mapArray[arrayX][arrayY]) {
+        mapArray[arrayX][arrayY] = newTiles[i];
+      }
+    }
+  }
 }

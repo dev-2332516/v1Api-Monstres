@@ -137,7 +137,7 @@ namespace ApiV1ControlleurMonstre.Controllers
         
         private bool IsOutOfBounds(int x, int y)
         {
-            return x < 0 || x >= 50 || y < 0 || y >= 50;
+            return x < 0 || x > 50 || y < 0 || y > 50;
         }
         
         private async Task<Tuile> GetOrCreateTuileAtPosition(int x, int y)
@@ -174,7 +174,7 @@ namespace ApiV1ControlleurMonstre.Controllers
                     tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);
                     if ((x >= -1 && x <= 1) && (y >= -1 && y <= 1) && tuile is null)
                     {
-                        if (positionX + x < 0 || positionX + x >= 50 || positionY + y < 0 || positionY + y >= 50)
+                        if (positionX + x < 0 || positionX + x > 50 || positionY + y < 0 || positionY + y > 50)
                             continue;
                         await PostTuile(TileGenerator.GenerateTuile(positionX + x, positionY + y));
                         tuile = await _context.Tuiles.FindAsync(positionX + x, positionY + y);

@@ -1049,8 +1049,8 @@ td p {
 /* === Système de notifications Toast === */
 .notification-container {
     position: fixed;
-    top: 80px;
-    right: 20px;
+    bottom: 20px;
+    left: 20px;
     z-index: 10000;
     max-width: 350px;
     pointer-events: none;
@@ -1064,7 +1064,7 @@ td p {
     padding: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
-    transform: translateX(400px);
+    transform: translateY(100px);
     opacity: 0;
     transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     pointer-events: auto;
@@ -1079,7 +1079,7 @@ td p {
 }
 
 .notification.hide {
-    transform: translateX(400px);
+    transform: translateY(100px);
     opacity: 0;
 }
 
@@ -1168,8 +1168,9 @@ td p {
 
 @media (max-width: 480px) {
     .notification-container {
-        right: 10px;
         left: 10px;
+        right: 10px;
+        bottom: 10px;
         max-width: none;
     }
 }
