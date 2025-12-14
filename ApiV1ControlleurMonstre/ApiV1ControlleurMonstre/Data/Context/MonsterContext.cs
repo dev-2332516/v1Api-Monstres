@@ -12,6 +12,7 @@ namespace ApiV1ControlleurMonstre.Data.Context
         public DbSet<InstanceMonstre> InstanceMonstres { get; set; }
         public DbSet<Quete> Quetes { get; set; }
         public DbSet<ServiceTimestamp> ServiceTimestamps { get; set; }
+        public DbSet<CaughtMonster> CaughtMonsters { get; set; }
 
         public MonsterContext(DbContextOptions<MonsterContext> options) : base(options) { }
 

@@ -48,7 +48,7 @@ namespace ApiV1ControlleurMonstre.Controllers
 
             // Créer un personnage par défaut lié à ce nouvel utilisateur
             Random rand = new Random();
-            int posX, posY;
+            int posX = 25, posY = 25;
             Tuile spawnTuile;
 
             // Chercher une tuile traversable pour le spawn
@@ -57,19 +57,24 @@ namespace ApiV1ControlleurMonstre.Controllers
                 spawnTuile = await _context.Tuiles
                 .Where(t => t.Type == TuileTypeEnum.Ville)
                 .FirstOrDefaultAsync();
-                posX = spawnTuile.PositionX;
-                posY = spawnTuile.PositionY;
-                // Si la tuile n'existe pas, la créer
-                if (spawnTuile == null)
+                try
                 {
-                    var tuilesController = new TuilesController(_context);
-                    spawnTuile = TileGenerator.GenerateTuile(posX, posY);
-                    
-                    // Ne sauvegarder la tuile que si elle est traversable
-                    if (spawnTuile.EstTraversable)
+                    posX = spawnTuile.PositionX;
+                    posY = spawnTuile.PositionY;
+                }catch
+                {
+                    // Si la tuile n'existe pas, la créer
+                    if (spawnTuile == null)
                     {
-                        await _context.Tuiles.AddAsync(spawnTuile);
-                        await _context.SaveChangesAsync();
+                        var tuilesController = new TuilesController(_context);
+                        spawnTuile = TileGenerator.GenerateTuile(posX, posY);
+                        
+                        // Ne sauvegarder la tuile que si elle est traversable
+                        if (spawnTuile.EstTraversable)
+                        {
+                            await _context.Tuiles.AddAsync(spawnTuile);
+                            await _context.SaveChangesAsync();
+                        }
                     }
                 }
             } while (spawnTuile == null || !spawnTuile.EstTraversable);

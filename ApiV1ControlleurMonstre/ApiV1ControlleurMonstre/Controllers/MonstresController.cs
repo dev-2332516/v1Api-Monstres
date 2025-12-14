@@ -96,5 +96,38 @@ namespace ApiV1ControlleurMonstre.Controllers
             }
             return monstres;
         }
+
+        // Get all types
+        [HttpGet("GetAllMainTypes")]
+        public async Task<ActionResult<IEnumerable<string>>> GetAllMainTypes()
+        {
+            var types = await _context.Monstre
+                .SelectMany(x => x.Type1)
+                .Distinct()
+                .ToListAsync();
+
+            return Ok(types);
+        }
+
+        // Get all types
+        [HttpGet("GetAllFromPage/{page}")]
+        public async Task<ActionResult<IEnumerable<Monstre>>> GetAllFromPage(int page)
+        {
+            var monstres = await _context.Monstre
+                .ToListAsync();
+
+            return Ok(monstres.GetRange(page - 1, page + 9));
+        }
+
+        // Get all types
+        [HttpGet("GetAllFromPage/{page}/{type}")]
+        public async Task<ActionResult<IEnumerable<Monstre>>> GetAllFromPage(int page, string type)
+        {
+            var monstres = await _context.Monstre
+                .Where(x => x.Type1 == type)
+                .ToListAsync();
+
+            return Ok(monstres.GetRange(page - 1, page + 9));
+        }
     }
 }
