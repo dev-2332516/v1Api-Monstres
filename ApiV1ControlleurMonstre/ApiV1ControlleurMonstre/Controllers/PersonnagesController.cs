@@ -25,6 +25,23 @@ namespace ApiV1ControlleurMonstre.Controllers
             _context = context;
         }
 
+        [HttpGet("GetAllPersonnages/")]
+        public async Task<ActionResult<IEnumerable<Personnage>>> GetAllPersonnages()
+        {
+            Request.Headers.TryGetValue("userToken", out var token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
+            if (user is not null)
+            {
+                var personnage = await _context.Personnages.ToListAsync();
+                if (personnage == null)
+                {
+                    return NotFound();
+                }
+                return personnage;
+            }
+            else return Unauthorized("InvalidToken: Token is invalid or missing");
+        }
+
         [HttpGet("GetPersonnageFromUser/")]
         public async Task<ActionResult<Personnage>> GetPersonnageFromUser()
         {
@@ -214,8 +231,17 @@ namespace ApiV1ControlleurMonstre.Controllers
             // Vérification du niveau
             HandleLevelUp(personnage);
 
+            // Save le monstre tuer dans la database
+            var caughtMonster = new CaughtMonster
+            {
+                monstreCaught = monstre.Monstre,
+                whoHasCaught = personnage
+            };
+            _context.CaughtMonsters.Add(caughtMonster);
+
             // Supprimer le monstre
             _context.InstanceMonstres.Remove(monstre);
+
 
             // Déplacer le joueur
             personnage.PositionX = newX;

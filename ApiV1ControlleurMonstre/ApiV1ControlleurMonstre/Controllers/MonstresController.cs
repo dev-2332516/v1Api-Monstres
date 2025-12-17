@@ -98,25 +98,13 @@ namespace ApiV1ControlleurMonstre.Controllers
         }
 
         // Get all types
-        [HttpGet("GetAllMainTypes")]
-        public async Task<ActionResult<IEnumerable<string>>> GetAllMainTypes()
-        {
-            var types = await _context.Monstre
-                .SelectMany(x => x.Type1)
-                .Distinct()
-                .ToListAsync();
-
-            return Ok(types);
-        }
-
-        // Get all types
-        [HttpGet("GetAllFromPage/{page}")]
-        public async Task<ActionResult<IEnumerable<Monstre>>> GetAllFromPage(int page)
+        [HttpGet("GetAll/")]
+        public async Task<ActionResult<IEnumerable<Monstre>>> GetAll()
         {
             var monstres = await _context.Monstre
                 .ToListAsync();
 
-            return Ok(monstres.GetRange(page - 1, page + 9));
+            return Ok(monstres);
         }
 
         // Get all types
@@ -127,7 +115,41 @@ namespace ApiV1ControlleurMonstre.Controllers
                 .Where(x => x.Type1 == type)
                 .ToListAsync();
 
-            return Ok(monstres.GetRange(page - 1, page + 9));
+            return Ok(monstres.GetRange(page - 1, page + 8));
+        }
+
+        // Get monster types
+        [HttpGet("GetAllTypes")]
+        public async Task<ActionResult<IEnumerable<string>>> GetAllTypes()
+        {
+            var types = await _context.Monstre
+                .Select(x => x.Type1)
+                .Distinct()
+                .ToListAsync();
+            types.AddRange(await _context.Monstre
+                .Select(x => x.Type2)
+                .Distinct()
+                .ToListAsync());
+
+            return Ok(types);
+        }
+
+        [HttpGet("GetAllCaught")]
+        public async Task<ActionResult<IEnumerable<CaughtMonster>>> GetCaughtByUser()
+        {
+            Request.Headers.TryGetValue("userToken", out var token);
+            Utilisateur user = await _context.Utilisateurs.FirstOrDefaultAsync(user => user.Token == token.ToString());
+            if (user is not null)
+            {
+                var caughtMonsters = await _context.CaughtMonsters
+                    .Include(c => c.monstreCaught)
+                    .Include(c => c.whoHasCaught)
+                    .ToListAsync();
+                    
+                return Ok(caughtMonsters);
+            }
+
+            return Unauthorized("InvalidToken");
         }
     }
 }
